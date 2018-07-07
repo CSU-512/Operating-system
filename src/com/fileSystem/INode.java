@@ -1,16 +1,17 @@
 package com.fileSystem;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 public class INode {
     private int fileLength;	// 文件字节数
     private FileTypeEnum fileType;//文件类型
     private String userID;	// 文件拥有者ID
-    private String GroupID;	// 文件组ID
+    private String groupID;	// 文件组ID
     private int privilege;	// 文件权限
     private Date ctime, mtime, atime; 	// inode上次变动时间、文件内容上次变动时间、文件上次打开时间
     private int linkCount;	// 文件链接数
-    private int dataBlockPosition; 		// 文件数据块的位置
+    private ArrayList<Integer> dataBlockList; 	// 文件数据块列表
 
     public int getFileLength() {
         return fileLength;
@@ -37,11 +38,11 @@ public class INode {
     }
 
     public String getGroupID() {
-        return GroupID;
+        return groupID;
     }
 
     public void setGroupID(String groupID) {
-        GroupID = groupID;
+        this.groupID = groupID;
     }
 
     public int getPrivilege() {
@@ -84,11 +85,11 @@ public class INode {
         this.linkCount = linkCount;
     }
 
-    public int getDataBlockPosition() {
-        return dataBlockPosition;
+    public ArrayList<Integer> getDataBlockList() {
+        return dataBlockList;
     }
 
-    public void setDataBlockPosition(int dataBlockPosition) {
-        this.dataBlockPosition = dataBlockPosition;
+    public void setDataBlockList(ArrayList<Integer> dataBlockList) {
+        this.dataBlockList = dataBlockList;
     }
 }
