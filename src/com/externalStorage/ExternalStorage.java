@@ -8,13 +8,13 @@ import java.util.ArrayList;
 
 // TODO: 2018/7/7 待测试文件写入和读出功能 
 public class ExternalStorage {
-    private int size;                       // 磁盘空间(byte)
-    private int inUse;                      // 已用空间(byte)
-    private int blockSize;                  // 盘块大小(byte)
+    private int size;                       // 磁盘空间(kbyte)
+    private int inUse;                      // 已用空间(kbyte)
+    private int blockSize;                  // 盘块大小(kbyte)
     private boolean[] bitDiagram;           // 位示图，false为空闲；true为占用
     private byte[][] data;
 
-    ExternalStorage(int size, int inUse, int blockSize, boolean[] bitDiagram, byte[][] data)
+    public ExternalStorage(int size, int inUse, int blockSize, boolean[] bitDiagram, byte[][] data)
             throws ExternalStorageSizeException {
         if (size % 4 != 0)
             throw new ExternalStorageSizeException(ExceptionEnum.OS_EXTERNAL_STORAGE_SIZE_EXCEPTION);
@@ -24,6 +24,29 @@ public class ExternalStorage {
         this.bitDiagram = bitDiagram;
         this.data = data;
     }
+
+    //---
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    public void setInUse(int inUse) {
+        this.inUse = inUse;
+    }
+
+    public void setBlockSize(int blockSize) {
+        this.blockSize = blockSize;
+    }
+
+    public void setBitDiagram(boolean[] bitDiagram) {
+        this.bitDiagram = bitDiagram;
+    }
+
+    public void setData(byte[][] data) {
+        this.data = data;
+    }
+
+    //---
 
     public int getSize() {
         return size;
