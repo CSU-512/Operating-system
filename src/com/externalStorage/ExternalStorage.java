@@ -6,7 +6,7 @@ import com.exception.ExternalStorageSizeException;
 
 import java.util.ArrayList;
 
-public class ExternalStorage implements ExternalStorageInterface{
+public class ExternalStorage implements ExternalStorageInterface {
     int size;                       // 磁盘空间
     int inUse;                      // 已用空间
     int blockSize;                  // 盘块大小
@@ -32,7 +32,7 @@ public class ExternalStorage implements ExternalStorageInterface{
             throw new ExternalStorageSizeException(ExceptionEnum.OS_EXTERNAL_STORAGE_SIZE_EXCEPTION);
         this.size = size;
         this.inUse = 0;
-        this.blockSize = 4;     // 默认盘块大小4kB
+        this.blockSize = 4;                         // 默认盘块大小4kB
         this.bitDiagram = new boolean[(size + 3) / 4];     // 向上取整
         this.data = new byte[(size + 3) / 4][this.blockSize * 1024];
         for (int i = 0; i < this.bitDiagram.length; i++)
@@ -62,12 +62,27 @@ public class ExternalStorage implements ExternalStorageInterface{
             }
         }
         k = 0;
-        for (int i : allocatedBlock) {                        // 将字节型数据挨个放入磁盘中
+        for (int i : allocatedBlock) {            // 将字节型数据挨个放入磁盘中
             data[i] = separatedByteData[k++];
         }
     }
 
-    public void sfree(ArrayList<Integer> usingBlock) {        // 释放参数所指定的盘块
+    // 将离散存储的数据拼接起来返回给调用者
+    public String getData(ArrayList<Integer> allocatedBlock) {
+        byte[][] separatedByteData = new byte[allocatedBlock.size()][this.blockSize * 1024];
+        int j = 0, k = 0;
+        for (int i : allocatedBlock) {            // 将离散数据联系起来
+            separatedByteData[j++] = data[i];
+        }
+        byte[] rawByteData = new byte[allocatedBlock.size() * this.blockSize * 1024];
+        for (byte[] i : separatedByteData)        // 将离散数据连接起来
+            for (byte l : i)
+                rawByteData[k++] = l;
+        return new String(rawByteData);           // 重新构造字符串
+    }
+
+    // 释放参数所指定的盘块
+    public void sfree(ArrayList<Integer> usingBlock) {
         for (Integer i : usingBlock)
             this.bitDiagram[i] = false;
     }
