@@ -6,6 +6,7 @@ import com.exception.ExternalStorageSizeException;
 
 import java.util.ArrayList;
 
+// TODO: 2018/7/7 待测试文件写入和读出功能 
 public class ExternalStorage implements ExternalStorageInterface {
     int size;                       // 磁盘空间
     int inUse;                      // 已用空间
