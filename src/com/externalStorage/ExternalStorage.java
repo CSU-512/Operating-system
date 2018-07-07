@@ -8,14 +8,14 @@ import java.util.ArrayList;
 
 // TODO: 2018/7/7 待测试文件写入和读出功能 
 public class ExternalStorage implements ExternalStorageInterface {
-    int size;                       // 磁盘空间
-    int inUse;                      // 已用空间
-    int blockSize;                  // 盘块大小
-    boolean[] bitDiagram;           // 位示图，false为空闲；true为占用
-    byte[][] data;
+    private int size;                       // 磁盘空间
+    private int inUse;                      // 已用空间
+    private int blockSize;                  // 盘块大小
+    private boolean[] bitDiagram;           // 位示图，false为空闲；true为占用
+    private byte[][] data;
 
     // 带外存大小、已用空间、盘块大小的构造方法
-    ExternalStorage(int size, int inUse, int blockSize) throws ExternalStorageSizeException {
+    public ExternalStorage(int size, int inUse, int blockSize) throws ExternalStorageSizeException {
         if (size % blockSize != 0)
             throw new ExternalStorageSizeException(ExceptionEnum.OS_EXTERNAL_STORAGE_SIZE_EXCEPTION);
         this.size = size;
@@ -28,7 +28,7 @@ public class ExternalStorage implements ExternalStorageInterface {
     }
 
     // 只规定外存大小的构造方法，其初态全为空
-    ExternalStorage(int size) throws ExternalStorageSizeException {
+    public ExternalStorage(int size) throws ExternalStorageSizeException {
         if (size % 4 != 0)
             throw new ExternalStorageSizeException(ExceptionEnum.OS_EXTERNAL_STORAGE_SIZE_EXCEPTION);
         this.size = size;
