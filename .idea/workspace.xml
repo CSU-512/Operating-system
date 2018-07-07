@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="0423c3bc-d487-4f8b-94c3-14b368956e28" name="Default" comment="" />
+    <list default="true" id="0423c3bc-d487-4f8b-94c3-14b368956e28" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/.ignore" beforeDir="false" afterPath="$PROJECT_DIR$/.ignore" afterDir="false" />
+    </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -214,7 +216,7 @@
       <workItem from="1530860634010" duration="855000" />
       <workItem from="1530929035015" duration="7577000" />
       <workItem from="1530947376031" duration="756000" />
-      <workItem from="1530948513489" duration="877000" />
+      <workItem from="1530948513489" duration="1490000" />
     </task>
     <task id="LOCAL-00001" summary="实现了“外存大小异常”和“外存空间不足异常”以及“异常枚举”类，并完成了“外存”类的表示">
       <created>1530933545910</created>
@@ -234,7 +236,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="10065000" />
+    <option name="totallyTimeSpent" value="10678000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
