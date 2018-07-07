@@ -1,15 +1,5 @@
 package com.fileSystem;
 
-import com.exception.ExternalStorageSizeException;
-import com.externalStorage.ExternalStorage;
-import com.externalStorage.ExternalStorageInterface;
-import com.internalStorage.InternalStorage;
-import com.internalStorage.InternalStorageInterface;
-import javafx.util.Pair;
-
-import java.util.ArrayList;
-import java.util.List;
-
 //public class FileSystem implements FileInterface {//文件系统
 //    private ExternalStorageInterface externalStorage;//调用磁盘操作的接口
 //    private InternalStorageInterface internalStorage;//调用内存操作的接口

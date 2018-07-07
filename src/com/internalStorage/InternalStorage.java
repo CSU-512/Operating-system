@@ -8,12 +8,28 @@ import java.util.Comparator;
 
 import com.exception.InternalStorageOutOfStorageException;
 
-public class InternalStorage implements InternalStorageInterface {
+public class InternalStorage {
 
     private int size;           // 外存总容量(byte)
     private int inUse;          // 已占用的外存容量(byte)
     private Pair<Integer, Integer> startAndLength;  // 空闲内存始址和偏移量
     private ArrayList<Pair<Integer, Integer>> availableISTable;
+
+    public int getSize() {
+        return size;
+    }
+
+    public int getInUse() {
+        return inUse;
+    }
+
+    public Pair<Integer, Integer> getStartAndLength() {
+        return startAndLength;
+    }
+
+    public ArrayList<Pair<Integer, Integer>> getAvailableISTable() {
+        return availableISTable;
+    }
 
     // 初始化空闲内存表，空闲始址0， 长度size
     InternalStorage(int size) {

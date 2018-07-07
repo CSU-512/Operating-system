@@ -7,7 +7,7 @@ import com.exception.ExternalStorageSizeException;
 import java.util.ArrayList;
 
 // TODO: 2018/7/7 待测试文件写入和读出功能 
-public class ExternalStorage implements ExternalStorageInterface {
+public class ExternalStorage {
     private int size;                       // 磁盘空间(byte)
     private int inUse;                      // 已用空间(byte)
     private int blockSize;                  // 盘块大小(byte)
@@ -23,6 +23,26 @@ public class ExternalStorage implements ExternalStorageInterface {
         this.blockSize = blockSize;
         this.bitDiagram = bitDiagram;
         this.data = data;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public int getInUse() {
+        return inUse;
+    }
+
+    public int getBlockSize() {
+        return blockSize;
+    }
+
+    public boolean[] getBitDiagram() {
+        return bitDiagram;
+    }
+
+    public byte[][] getData() {
+        return data;
     }
 
     // 为文件分配盘块，分配的结果存放在returnBlock中
