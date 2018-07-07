@@ -1,5 +1,6 @@
 # Build and Release Folders
 .idea/
+out/
 bin-debug
 bin-release
 [Oo]bj
