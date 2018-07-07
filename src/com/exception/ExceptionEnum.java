@@ -3,12 +3,11 @@ package com.exception;
 public enum ExceptionEnum {
     OS_EXTERNAL_STORAGE_SIZE_EXCEPTION(10001, "外存容量应该为盘块大小的倍数"),
     OS_EXTERNAL_STORAGE_OUT_OF_STORAGE_EXCEPTION(10002, "外存容量不足"),
-    OS_OTHER_EXCEPTION(99999, "其他错误");
+    OS_OTHER_EXCEPTION(99999, "其他异常");
 
     private int exceptionCode;
     private String exceptionMessage;
-
-    private ExceptionEnum(int exceptionCode, String exceptionMessage){
+    ExceptionEnum(int exceptionCode, String exceptionMessage){
         this.exceptionCode = exceptionCode;
         this.exceptionMessage = exceptionMessage;
     }

@@ -6,49 +6,69 @@ import com.exception.ExternalStorageSizeException;
 
 import java.util.ArrayList;
 
-public class ExternalStorage{
-    int size;				    // 磁盘空间
-    int inUse;			        // 已用空间
-    int blockSize;		        // 盘块大小
-    boolean[] bitDiagram;	    // 位示图，false为空闲；true为占用
+public class ExternalStorage implements ExternalStorageInterface{
+    int size;                       // 磁盘空间
+    int inUse;                      // 已用空间
+    int blockSize;                  // 盘块大小
+    boolean[] bitDiagram;           // 位示图，false为空闲；true为占用
+    byte[][] data;
 
     // 带外存大小、已用空间、盘块大小的构造方法
-    ExternalStorage(int size, int inUse, int blockSize) throws ExternalStorageSizeException{
-        if(size % blockSize != 0)
+    ExternalStorage(int size, int inUse, int blockSize) throws ExternalStorageSizeException {
+        if (size % blockSize != 0)
             throw new ExternalStorageSizeException(ExceptionEnum.OS_EXTERNAL_STORAGE_SIZE_EXCEPTION);
         this.size = size;
         this.inUse = inUse;
         this.blockSize = blockSize;
-        this.bitDiagram = new boolean[(size + blockSize - 1)/blockSize]; // 向上取整
-        for(int i = 0; i < this.bitDiagram.length; i++)
+        this.bitDiagram = new boolean[(size + blockSize - 1) / blockSize]; // 向上取整
+        this.data = new byte[(size + blockSize - 1) / blockSize][blockSize * 1024];
+        for (int i = 0; i < this.bitDiagram.length; i++)
             this.bitDiagram[i] = (i < inUse);
     }
 
     // 只规定外存大小的构造方法，其初态全为空
-    ExternalStorage(int size) throws ExternalStorageSizeException{
-        if(size % 4 != 0)
+    ExternalStorage(int size) throws ExternalStorageSizeException {
+        if (size % 4 != 0)
             throw new ExternalStorageSizeException(ExceptionEnum.OS_EXTERNAL_STORAGE_SIZE_EXCEPTION);
         this.size = size;
         this.inUse = 0;
         this.blockSize = 4;     // 默认盘块大小4kB
-        this.bitDiagram = new boolean[(size + 3) / 4];                   // 向上取整
-        for(int i = 0; i < this.bitDiagram.length; i++)
+        this.bitDiagram = new boolean[(size + 3) / 4];     // 向上取整
+        this.data = new byte[(size + 3) / 4][this.blockSize * 1024];
+        for (int i = 0; i < this.bitDiagram.length; i++)
             this.bitDiagram[i] = false;
     }
 
-    // 为文件分配盘块，分配的结果存放在参数中
-    void salloc(int requiredSize, ArrayList<Integer> returnBlock) throws ExternalStorageOutOfStorageException {
-        if(this.size - this.inUse < requiredSize)
+    // 为文件分配盘块，分配的结果存放在returnBlock中
+    public void salloc(int requiredSize, ArrayList<Integer> returnBlock) throws ExternalStorageOutOfStorageException {
+        if (this.size - this.inUse < requiredSize)
             throw new ExternalStorageOutOfStorageException(ExceptionEnum.OS_EXTERNAL_STORAGE_OUT_OF_STORAGE_EXCEPTION);
-        for(int i = 0; i < this.bitDiagram.length; i++){
-            if(!this.bitDiagram[i]){
+        for (int i = 0; i < this.bitDiagram.length; i++) {
+            if (!this.bitDiagram[i]) {
                 returnBlock.add(i);
                 this.bitDiagram[i] = true;
             }
         }
     }
-    void sfree(ArrayList<Integer> usingBlock) {        // 释放参数所指定的盘块
-        for(Integer i : usingBlock)
+
+    // 将原数据和已分配的盘块传入该方法，将数据转为字节型后离散地存储
+    public void putData(String rawData, ArrayList<Integer> allocatedBlock) {
+        byte[] rawByteData = rawData.getBytes();
+        int k = 0;
+        byte[][] separatedByteData = new byte[allocatedBlock.size()][this.blockSize * 1024];
+        for (int i = 0; i < allocatedBlock.size(); i++) {
+            for (int j = 0; j < this.blockSize * 1024; j++) {
+                separatedByteData[i][j] = rawByteData[k++];
+            }
+        }
+        k = 0;
+        for (int i : allocatedBlock) {                        // 将字节型数据挨个放入磁盘中
+            data[i] = separatedByteData[k++];
+        }
+    }
+
+    public void sfree(ArrayList<Integer> usingBlock) {        // 释放参数所指定的盘块
+        for (Integer i : usingBlock)
             this.bitDiagram[i] = false;
     }
 }
