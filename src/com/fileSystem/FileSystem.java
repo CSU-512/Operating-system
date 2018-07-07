@@ -1,29 +1,25 @@
-//package com.fileSystem;
-//
-//import com.exception.ExternalStorageSizeException;
-//import com.externalStorage.ExternalStorage;
-//import com.externalStorage.ExternalStorageInterface;
-//import com.internalStorage.InternalStorage;
-//import com.internalStorage.InternalStorageInterface;
-//import javafx.util.Pair;
-//
-//import java.util.ArrayList;
-//import java.util.List;
-//
-//public class FileSystem implements FileInterface {//文件系统
-//    private ExternalStorageInterface externalStorage;//调用磁盘操作的接口
-//    private InternalStorageInterface internalStorage;//调用内存操作的接口
-//    private List<INode> iNodes;//iNode列表
-//
-//    public FileSystem() {
+package com.fileSystem;
+
+import com.exception.ExternalStorageSizeException;
+import com.externalStorage.ExternalStorage;
+import com.internalStorage.InternalStorage;
+import javafx.util.Pair;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class FileSystem {//文件系统
+    private ExternalStorage externalStorage;//调用磁盘操作的接口
+    private InternalStorage internalStorage;//调用内存操作的接口
+    private ArrayList<INode> iNodes;//iNode列表
+
+    public FileSystem() {
 //        try {
-//            externalStorage = new ExternalStorage(2048);
-//            internalStorage = new InternalStorage();
-//            iNodes = new ArrayList<>();
+//
 //        } catch (ExternalStorageSizeException e) {
 //            e.printExceptionMessage();
 //        }
-//    }
+    }
 //
 //    public boolean newFile(String currentPath, String fileName) {//新建文件，返回值表示文件创建是否成功；真为成功，假为失败
 //
@@ -52,4 +48,4 @@
 //    public List<Pair<String, FileTypeEnum>> showDirectory(String currentPath) {//显示目录内容，参数为路径，返回值为列表；Pair中String参数表示文件或目录名，FileTypeEnum参数标识文件类型
 //
 //    }
-//}
+}

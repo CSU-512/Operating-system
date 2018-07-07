@@ -1,5 +1,6 @@
 # Build and Release Folders
 .idea/
+out/
 bin-debug
 bin-release
 [Oo]bj
@@ -7,6 +8,7 @@ bin-release
 
 # Other files and folders
 .settings
+.idea/workspace.xml
 
 # Executables
 .swf

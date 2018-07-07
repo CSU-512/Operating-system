@@ -159,6 +159,21 @@ public class mainWindow extends JFrame{
             }
         });
 
+        //添加新文件夹
+        addDirectory.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+            }
+        });
+
+        //删除操作
+        deleteItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                
+            }
+        });
         popupMenu.add(addFile);
         popupMenu.add(addDirectory);
         popupMenu.add(deleteItem);
