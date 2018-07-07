@@ -4,6 +4,7 @@ import java.util.Date;
 
 public class INode {
     private int fileLength;	// 文件字节数
+    private FileTypeEnum fileType;//文件类型
     private String userID;	// 文件拥有者ID
     private String GroupID;	// 文件组ID
     private int privilege;	// 文件权限
@@ -17,6 +18,14 @@ public class INode {
 
     public void setFileLength(int fileLength) {
         this.fileLength = fileLength;
+    }
+
+    public FileTypeEnum getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(FileTypeEnum fileType) {
+        this.fileType = fileType;
     }
 
     public String getUserID() {
