@@ -22,6 +22,22 @@ public class INode implements Serializable {
 
     }
 
+    public INode(int iNumber, int fileLength, FileTypeEnum fileType, String userID, String groupID, int privilege, Date ctime, Date mtime, Date atime, int linkCount, ArrayList<Integer> dataBlockList, ArrayList<Integer> childInodeList, Map<String, Integer> pathMap) {
+        this.iNumber = iNumber;
+        this.fileLength = fileLength;
+        this.fileType = fileType;
+        this.userID = userID;
+        this.groupID = groupID;
+        this.privilege = privilege;
+        this.ctime = ctime;
+        this.mtime = mtime;
+        this.atime = atime;
+        this.linkCount = linkCount;
+        this.dataBlockList = dataBlockList;
+        this.childInodeList = childInodeList;
+        this.pathMap = pathMap;
+    }
+
     public int getiNumber() {
         return iNumber;
     }

@@ -19,9 +19,9 @@ public class FileSystem {//文件系统
         try {
             externalStorage = JSONLoader.getExternalStorageFromJson();
             internalStorage = new InternalStorage(100);
-            iNodes = new ArrayList<>();
-        } catch (ExternalStorageSizeException e) {
-            e.printExceptionMessage();
+            iNodes = JSONLoader.getINodeArray();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

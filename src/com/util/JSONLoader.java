@@ -3,14 +3,13 @@ package com.util;
 
 import com.exception.ExternalStorageSizeException;
 import com.externalStorage.ExternalStorage;
+import com.fileSystem.INode;
 import org.apache.commons.codec.binary.Base64;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
+import java.util.ArrayList;
 
 public class JSONLoader {
     private static JSONObject jsonObject;
@@ -43,20 +42,37 @@ public class JSONLoader {
         }
 
         JSONArray dataArray = diskInfo.getJSONArray("data");//构建磁盘块内容
-        String[] dataBase64 = new String[diskSize / diskBlockSize];
+        String dataBase64;
         for (int i = 0; i < dataArray.length(); i++) {
-            dataBase64[i] = dataArray.getString(i);
-            data[i] = Base64.decodeBase64(dataBase64[i]);
+            dataBase64 = dataArray.getString(i);
+            data[i] = Base64.decodeBase64(dataBase64);
         }
 
         return new ExternalStorage(diskSize, diskInUse, diskBlockSize, bitDiagram, data);
     }
 
-    public static void main(String[] args) throws ExternalStorageSizeException, UnsupportedEncodingException {
-        ExternalStorage exs = JSONLoader.getExternalStorageFromJson();
+    //从字节数组中得到INode对象
+    private static INode deSerializableINodeBytes(byte[] iNodeBytes) throws IOException, ClassNotFoundException {
+        ByteArrayInputStream bais = new ByteArrayInputStream(iNodeBytes);
+        ObjectInputStream ois = new ObjectInputStream(bais);
+        return (INode) ois.readObject();
+    }
 
-        byte[][] bytes = exs.getData();
-        for (int i = 0; i < bytes.length; i++)
-            System.out.println(new String(bytes[i],"utf-8").length());
+    //利用本地JSON中的“INodeList”项构建磁盘对象
+    public static ArrayList<INode> getINodeArray() throws IOException, ClassNotFoundException {
+        JSONArray iNodeList = jsonObject.getJSONArray("INodeList");
+        ArrayList<INode> iNodes = new ArrayList<>();
+        String iNodeByteArrayBase64Str;
+
+        for (int i = 0; i < iNodeList.length(); i++) {
+            iNodeByteArrayBase64Str = iNodeList.getString(i);
+            iNodes.add(deSerializableINodeBytes(Base64.decodeBase64(iNodeByteArrayBase64Str)));
+        }
+
+        return iNodes;
+    }
+
+    public static void main(String[] args) throws ExternalStorageSizeException, UnsupportedEncodingException {
+
     }
 }
