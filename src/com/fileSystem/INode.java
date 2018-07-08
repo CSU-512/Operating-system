@@ -7,6 +7,7 @@ import java.util.Map;
 
 public class INode implements Serializable {
     private int iNumber;    //inode编号
+    private String fileName;    //文件名
     private int fileLength;	// 文件字节数
     private FileTypeEnum fileType;//文件类型
     private String userID;	// 文件拥有者ID
@@ -15,15 +16,15 @@ public class INode implements Serializable {
     private Date ctime, mtime, atime; 	// inode上次变动时间、文件内容上次变动时间、文件上次打开时间
     private int linkCount;	// 文件链接数
     private ArrayList<Integer> dataBlockList; 	// 文件数据块列表
-    private ArrayList<Integer> childInodeList;  //  保存所有子inode的编号
     private Map<String, Integer> pathMap;   //从子inode编号到其路径名的映射
 
     public INode() {
 
     }
 
-    public INode(int iNumber, int fileLength, FileTypeEnum fileType, String userID, String groupID, int privilege, Date ctime, Date mtime, Date atime, int linkCount, ArrayList<Integer> dataBlockList, ArrayList<Integer> childInodeList, Map<String, Integer> pathMap) {
+    public INode(int iNumber, String fileName, int fileLength, FileTypeEnum fileType, String userID, String groupID, int privilege, Date ctime, Date mtime, Date atime, int linkCount, ArrayList<Integer> dataBlockList, Map<String, Integer> pathMap) {
         this.iNumber = iNumber;
+        this.fileName = fileName;
         this.fileLength = fileLength;
         this.fileType = fileType;
         this.userID = userID;
@@ -34,7 +35,6 @@ public class INode implements Serializable {
         this.atime = atime;
         this.linkCount = linkCount;
         this.dataBlockList = dataBlockList;
-        this.childInodeList = childInodeList;
         this.pathMap = pathMap;
     }
 
@@ -44,6 +44,14 @@ public class INode implements Serializable {
 
     public void setiNumber(int iNumber) {
         this.iNumber = iNumber;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 
     public int getFileLength() {
@@ -124,14 +132,6 @@ public class INode implements Serializable {
 
     public void setDataBlockList(ArrayList<Integer> dataBlockList) {
         this.dataBlockList = dataBlockList;
-    }
-
-    public ArrayList<Integer> getChildInodeList() {
-        return childInodeList;
-    }
-
-    public void setChildInodeList(ArrayList<Integer> childInodeList) {
-        this.childInodeList = childInodeList;
     }
 
     public Map<String, Integer> getPathMap() {
