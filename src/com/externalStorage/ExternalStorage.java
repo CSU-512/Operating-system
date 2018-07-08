@@ -49,7 +49,7 @@ public class ExternalStorage {
     public void salloc(int requiredSize, ArrayList<Integer> returnBlock) throws ExternalStorageOutOfStorageException {
         if (this.size - this.inUse < requiredSize)
             throw new ExternalStorageOutOfStorageException(ExceptionEnum.OS_EXTERNAL_STORAGE_OUT_OF_STORAGE_EXCEPTION);
-        int k = 0;
+        int k = 0;  // 分配的盘块数
         for (int i = 0; i < this.bitDiagram.length && k*(blockSize*1024) < requiredSize; i++) {
             if (!this.bitDiagram[i]) {
                 returnBlock.add(i);
@@ -57,6 +57,7 @@ public class ExternalStorage {
                 this.bitDiagram[i] = true;
             }
         }
+        inUse += k*blockSize;
     }
 
     // 将原数据和已分配的盘块传入该方法，将数据转为字节型后离散地存储
