@@ -141,7 +141,9 @@ public class mainWindow extends JFrame{
             //选择节点触发
             @Override
             public void valueChanged(TreeSelectionEvent e) {
-                FileNode selectedNode = (FileNode) fileTree.getLastSelectedPathComponent();
+                TreePath treePath = (TreePath) fileTree.getLeadSelectionPath();
+                FileNode selectedNode = (FileNode) treePath.getLastPathComponent();
+                //String content = fileSystem.readFile()
                 //System.out.println(handlePath(fileTree.getSelectionPath().toString()));
                 if(selectedNode != null)  {}      //删除时触发两次会报错
                     //fileDisplay.setText(selectedNode.fileContent());
@@ -178,8 +180,7 @@ public class mainWindow extends JFrame{
 
                 System.out.println(selectedNode.toString());
                 TreePath treePath = fileTree.getSelectionPath();
-                String currentPath = handlePath(treePath.toString());
-                currentPath = currentPath.substring(0,currentPath.length() - selectedNode.toString().length());
+                String currentPath = handleFilepath(treePath);
                 System.out.println(currentPath);
                 fileSystem.writeFile(currentPath,selectedNode.toString(),fileDisplay.getText());
                 fileSystem.saveCurrentFileSystem();
@@ -302,6 +303,13 @@ public class mainWindow extends JFrame{
         newPath = path.replaceAll(", ","/");
         //newPath = "/"+newPath;
         return newPath;
+    }
+
+    public String handleFilepath(TreePath path){
+        FileNode selectedNode = (FileNode) path.getLastPathComponent();
+        String currentPath = handlePath(path.toString());
+        currentPath = currentPath.substring(0,currentPath.length() - selectedNode.toString().length());
+        return currentPath;
     }
 
     public static void main(String[] args) {
