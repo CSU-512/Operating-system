@@ -16,7 +16,7 @@ public class JSONLoader {
 
     static {
         try {
-            BufferedReader br = new BufferedReader(new FileReader("Operating-system/src/com/util/Config.json"));
+            BufferedReader br = new BufferedReader(new FileReader("src/com/util/Config.json"));
             String line;
             StringBuilder sb = new StringBuilder();
             while ((line = br.readLine()) != null)

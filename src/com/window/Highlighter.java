@@ -49,6 +49,7 @@ class Highlighter implements DocumentListener {
         keywords.add("rmdir");
         keywords.add("ls");
         keywords.add("clear");
+        keywords.add("cd");
     }
 
 
