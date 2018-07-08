@@ -1,4 +1,8 @@
 package com.window;
+import com.fileSystem.FileSystem;
+import com.fileSystem.FileTypeEnum;
+import javafx.util.Pair;
+
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -39,15 +43,16 @@ class FileNode extends DefaultMutableTreeNode{
 
 public class mainWindow extends JFrame{
     protected JTree fileTree;
-    protected DefaultListModel fileModel;
     protected JPopupMenu popupMenu;
     protected JTextPane fileDisplay, commandLine;
+    protected FileSystem fileSystem;
     private List<DefaultMutableTreeNode> currentContent;
 
     public mainWindow(){
         this.setLayout(null);
         this.setSize(800,1000);
         this.setTitle("UNIX FileSystem");
+        fileSystem = new FileSystem();
         try {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsClassicLookAndFeel");
             SwingUtilities.updateComponentTreeUI(this);
@@ -57,7 +62,12 @@ public class mainWindow extends JFrame{
 
         fileDisplay = new JTextPane();
         commandLine = new JTextPane();
-        JLabel menu = new JLabel("目录");
+        JScrollPane jscForDisplay = new JScrollPane(fileDisplay);
+        JScrollPane jscForCommand = new JScrollPane(commandLine);
+        JLabel menuLabel = new JLabel("目录");
+        JLabel contentLabel = new JLabel("文件内容");
+        menuLabel.setFont(new Font("Courier",Font.ITALIC,20));
+        contentLabel.setFont(new Font("Courier",Font.ITALIC,20));
 
         initFileTree();                 //初始化文件列表
         initButtons();
@@ -65,30 +75,44 @@ public class mainWindow extends JFrame{
         initPane();
         JScrollPane jScrollPane = new JScrollPane(fileTree);
 
-        jScrollPane.setBounds(10,70,200,600);
-        menu.setBounds(10,10,200,50);
-        commandLine.setBounds(250,600,500,300);
-        fileDisplay.setBounds(250,50,500,450);
+        jScrollPane.setBounds(10,50,200,600);
+        menuLabel.setBounds(10,10,200,50);
+        contentLabel.setBounds(250,10,200,50);
+        jscForCommand.setBounds(250,600,500,300);
+        jscForDisplay.setBounds(250,50,500,450);
 
         fileDisplay.setEditable(false);
         commandLine.setBackground(Color.GRAY);
         commandLine.setForeground(Color.WHITE);
-
-        this.add(commandLine);
-        this.add(fileDisplay);
-        this.add(menu);
+        //命令行滑条不显示
+        jscForCommand.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+        this.add(jscForDisplay);
+        this.add(jscForCommand);
+        this.add(menuLabel);
         this.add(jScrollPane);
-
+        this.add(contentLabel);
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         this.setVisible(true);
     }
 
     public void initFileTree(){
+        String currentPath = "~/";
+
+        List<Pair<String, FileTypeEnum>> nodeList = fileSystem.showDirectory(currentPath);
         FileNode root = new FileNode("我的电脑");
-        FileNode menu = new FileNode("桌面");
         root.setType(0);
-        menu.setType(0);
-        root.add(menu);
+        for(Pair<String, FileTypeEnum> node : nodeList){
+            FileNode newNode = new FileNode(node.getKey());
+            switch (node.getValue()){
+                case INODE_IS_DIRECTORY: {
+                    newNode.setType(0);
+                } break;
+                case INODE_IS_REGULAR_FILE:{
+                    newNode.setType(1);
+                } break;
+            }
+            root.add(newNode);
+        }
         DefaultTreeModel defaultTreeModel = new DefaultTreeModel(root);
         fileTree = new JTree(defaultTreeModel);
 
@@ -112,10 +136,13 @@ public class mainWindow extends JFrame{
 
             }
         });
+
         fileTree.addTreeSelectionListener(new TreeSelectionListener() {
+            //选择节点触发
             @Override
             public void valueChanged(TreeSelectionEvent e) {
                 FileNode selectedNode = (FileNode) fileTree.getLastSelectedPathComponent();
+                System.out.println(handlePath(fileTree.getSelectionPath().toString()));
                 if(selectedNode != null)        //删除时触发两次会报错
                     fileDisplay.setText(selectedNode.fileContent());
             }
@@ -230,7 +257,6 @@ public class mainWindow extends JFrame{
         popupMenu.add(addFile);
         popupMenu.add(addDirectory);
         popupMenu.add(deleteItem);
-
     }
 
     public void initPane(){
@@ -241,11 +267,18 @@ public class mainWindow extends JFrame{
             @Override
             public void keyReleased(KeyEvent e){
                 if(e.getKeyCode() == KeyEvent.VK_ENTER){
+                    commandLine.setCaretPosition(commandLine.getDocument().getLength());
                     commandLine.replaceSelection("$");
                 }
             }
-
         });
+    }
+    //处理路径（转换为底层需要的）
+    public String handlePath(String path){
+        String newPath;
+        path = path.substring(1,path.length()-1);
+        newPath = path.replaceAll(", ","/");
+        return newPath;
     }
 
     public static void main(String[] args) {

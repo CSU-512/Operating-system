@@ -32,23 +32,23 @@ class Highlighter implements DocumentListener {
 
         StyleConstants.setForeground(normalStyle, Color.WHITE);
 
-
-        // 准备关键字
-
         keywords = new HashSet<String>();
 
-        keywords.add("public");
+        initDict();
 
-        keywords.add("protected");
-
-        keywords.add("private");
-
-        keywords.add("_int9");
-
-        keywords.add("float");
-
-        keywords.add("double");
-
+    }
+    //添加词库
+    public void initDict(){
+        keywords.add("touch");
+        keywords.add("mkdir");
+        keywords.add("cat");
+        keywords.add("write");
+        keywords.add("cp");
+        keywords.add("mv");
+        keywords.add("rm");
+        keywords.add("rmdir");
+        keywords.add("ls");
+        keywords.add("clear");
     }
 
 
