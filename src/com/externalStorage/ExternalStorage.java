@@ -60,16 +60,23 @@ public class ExternalStorage {
     // 将原数据和已分配的盘块传入该方法，将数据转为字节型后离散地存储
     public void putData(byte[] rawByteData, ArrayList<Integer> allocatedBlock) {
 //        byte[] rawByteData = rawData.getBytes();
-        int k = 0;
-        byte[][] separatedByteData = new byte[allocatedBlock.size()][this.blockSize * 1024];
-        for (int i = 0; i < allocatedBlock.size(); i++) {
+        int k = 0, i;
+        // TODO: 2018/7/8 添加方法注释 
+        byte[][] separatedByteData = new byte[allocatedBlock.size()][];
+        for (i = 0; i < rawByteData.length / 1024 / blockSize; i++) {
+            separatedByteData[i] = new byte[1024*blockSize];
             for (int j = 0; j < this.blockSize * 1024; j++) {
                 separatedByteData[i][j] = rawByteData[k++];
             }
         }
+        if(rawByteData.length % (1024*blockSize) > 0){
+            separatedByteData[i] = new byte[rawByteData.length % (1024*blockSize)];
+            for(int j = 0; j < rawByteData.length % (1024*blockSize); j++)
+                separatedByteData[i][j] = rawByteData[k++];
+        }
         k = 0;
-        for (int i : allocatedBlock) {            // 将字节型数据挨个放入磁盘中
-            data[i] = separatedByteData[k++];
+        for (Integer index : allocatedBlock) {            // 将字节型数据挨个放入磁盘中
+            data[index] = separatedByteData[k++];
         }
     }
 
