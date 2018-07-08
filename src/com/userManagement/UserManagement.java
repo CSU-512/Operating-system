@@ -3,13 +3,16 @@ package com.userManagement;
 import com.exception.ExceptionEnum;
 import com.exception.NoSuchUserException;
 import com.exception.OSException;
+import org.apache.commons.codec.binary.Base64;
+import org.json.JSONObject;
 
-import java.io.Serializable;
+import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
 public class UserManagement implements Serializable {
+    private static final long serialVersionUID = 1L;
     private ArrayList<User> userList;
     private boolean[] UIDList = new boolean[1024]; // true表示UID已用；false表示UID可用
 
@@ -17,6 +20,27 @@ public class UserManagement implements Serializable {
     public UserManagement(ArrayList<User> userList, boolean[] UIDList) {
         this.userList = userList;
         this.UIDList = UIDList;
+    }
+
+    public UserManagement(File userManagementFile) throws IOException, ClassNotFoundException {
+
+        FileInputStream fis = new FileInputStream(userManagementFile);
+        byte[] userJSONByte = new byte[(int) new File("UserManagement.json").length()];
+        fis.read(userJSONByte);
+
+        JSONObject jo = new JSONObject(new String(userJSONByte));
+        byte[] userByte = Base64.decodeBase64(jo.getString("UserManagement"));
+
+        ByteArrayInputStream bis = new ByteArrayInputStream(userByte);
+        ObjectInputStream oi = new ObjectInputStream(bis);
+        UserManagement um = (UserManagement) oi.readObject();
+        this.userList = um.userList;
+        this.UIDList = um.UIDList;
+
+        fis.close();
+        bis.close();
+        oi.close();
+
     }
 
     // 用于第一次生成UserManagement
