@@ -211,12 +211,14 @@ public class FileSystem {//文件系统
         return false;
     }
 
-//    public boolean move(String sourceFileName,String currentPath, String targetPath) {//文件移动，把源文件移动到目标路径，返回真表示成功，返回假表示失败
-//        //先找到代表当前文件的INode
-//
-//
-//
-//    }
+    public boolean move(String sourceFileName,String currentPath, String targetPath) {//文件移动，把源文件移动到目标路径，返回真表示成功，返回假表示失败
+        //先找到代表当前文件的INode
+        if (copy(sourceFileName, currentPath, targetPath)) {
+            remove(currentPath, sourceFileName);
+            return true;
+        }
+        return false;
+    }
 
     public void remove(String currentPath, String sourceFileName) {//删除文件
         //回收磁盘空间、从iNodes中移除、清除父结点信息

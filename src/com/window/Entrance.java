@@ -91,7 +91,7 @@ public class Entrance {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    String usernameOrUID = identifierField.getText();
+                    String usernameOrUID = identifierField.getText().trim();
                     String password = new String(passwordField.getPassword());
 
                     // 正则表达式匹配确认是否有非数字字符
@@ -111,7 +111,8 @@ public class Entrance {
                         if(um.userLogin(Integer.valueOf(usernameOrUID), password))
                             new mainWindow();
                     }
-                    entranceFrame.setVisible(false); // 通过身份验证后隐藏登录窗口
+//                    entranceFrame.setVisible(false); // 通过身份验证后隐藏登录窗口
+                    entranceFrame.dispose();
 
                 } catch (IOException e1) {
                     e1.printStackTrace();
