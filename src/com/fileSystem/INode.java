@@ -2,8 +2,10 @@ package com.fileSystem;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 
 public class INode {
+    private int iNumber;    //inode编号
     private int fileLength;	// 文件字节数
     private FileTypeEnum fileType;//文件类型
     private String userID;	// 文件拥有者ID
@@ -12,6 +14,20 @@ public class INode {
     private Date ctime, mtime, atime; 	// inode上次变动时间、文件内容上次变动时间、文件上次打开时间
     private int linkCount;	// 文件链接数
     private ArrayList<Integer> dataBlockList; 	// 文件数据块列表
+    private ArrayList<Integer> childInodeList;  //  保存所有子inode的编号
+    private Map<Integer, String> pathMap;   //从子inode编号到其路径名的映射
+
+    public INode() {
+
+    }
+
+    public int getiNumber() {
+        return iNumber;
+    }
+
+    public void setiNumber(int iNumber) {
+        this.iNumber = iNumber;
+    }
 
     public int getFileLength() {
         return fileLength;
@@ -91,5 +107,21 @@ public class INode {
 
     public void setDataBlockList(ArrayList<Integer> dataBlockList) {
         this.dataBlockList = dataBlockList;
+    }
+
+    public ArrayList<Integer> getChildInodeList() {
+        return childInodeList;
+    }
+
+    public void setChildInodeList(ArrayList<Integer> childInodeList) {
+        this.childInodeList = childInodeList;
+    }
+
+    public Map<Integer, String> getPathMap() {
+        return pathMap;
+    }
+
+    public void setPathMap(Map<Integer, String> pathMap) {
+        this.pathMap = pathMap;
     }
 }

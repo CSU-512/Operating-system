@@ -30,7 +30,7 @@ public class Main {
         for(Pair<Integer, Integer> p : arl)
             System.out.print(p.getKey() + " ");
         System.out.println();
-        String str = "haha";
+        String str = "蛤蛤";
         System.out.println(Base64.encodeBase64String(str.getBytes("utf-8")));
         System.out.println(new String(Base64.decodeBase64(Base64.encodeBase64String(str.getBytes("utf-8")))));
         System.out.println(new String(Base64.decodeBase64("aGFoYQ==")));
