@@ -88,7 +88,7 @@ public class Main {
         ObjectInputStream objectInputStream = new ObjectInputStream(bis);
         UserManagement um = (UserManagement) objectInputStream.readObject();
         System.out.println(um.findUser(0).getUserName()+"\n"+um.findUser(0).getUserType().getUserType());
-        System.out.println(um.userLogin(01, "password"));
+        System.out.println(um.findUser(0).getPassword());
     }
 }
 
