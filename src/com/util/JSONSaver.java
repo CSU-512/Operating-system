@@ -11,14 +11,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
-public class DiskSaver {
+public class JSONSaver {
     private ExternalStorage externalStorage;
 
-    public DiskSaver(ExternalStorage externalStorage) {
+    public JSONSaver(ExternalStorage externalStorage) {
         this.externalStorage = externalStorage;
     }
 
     public void save() {
+        JSONObject jsonObject = new JSONObject();
+
+        //把磁盘相关信息装入JSON
         JSONObject diskInfo = new JSONObject();
         diskInfo.put("diskSize", externalStorage.getSize());
         diskInfo.put("diskInUse", externalStorage.getInUse());
@@ -29,11 +32,15 @@ public class DiskSaver {
         for (int i = 0; i < data.length; i++)
             dataArray.put(Base64.encodeBase64String(data[i]));
         diskInfo.put("data", dataArray);
-        File file = new File("src/com/util/Disk.json");
+        jsonObject.put("Disk", diskInfo);
+
+
+        //将JSON内容写入文件
+        File file = new File("src/com/util/Config.json");
         FileOutputStream out;
         try {
             out = new FileOutputStream(file);
-            out.write(diskInfo.toString().getBytes());
+            out.write(jsonObject.toString().getBytes());
             out.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -51,12 +58,12 @@ public class DiskSaver {
             bitDiagram[i] = true;
 
 
-        for (int i = 0; i < data.length; i++)
-            for (int j = 0; j < data[i].length; j++)
-                data[i][j] = "蛤".getBytes("GBK")[j%2];
+        for (int i = 0; i < data.length; i++) {
+            data[i] = "蛤蛤蛤".getBytes("utf-8");
+        }
 
         ExternalStorage exs = new ExternalStorage(diskSize, diskInUse, diskBlockSize, bitDiagram, data);
 
-        new DiskSaver(exs).save();
+        new JSONSaver(exs).save();
     }
 }

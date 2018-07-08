@@ -25,29 +25,6 @@ public class ExternalStorage {
         this.data = data;
     }
 
-    //---
-    public void setSize(int size) {
-        this.size = size;
-    }
-
-    public void setInUse(int inUse) {
-        this.inUse = inUse;
-    }
-
-    public void setBlockSize(int blockSize) {
-        this.blockSize = blockSize;
-    }
-
-    public void setBitDiagram(boolean[] bitDiagram) {
-        this.bitDiagram = bitDiagram;
-    }
-
-    public void setData(byte[][] data) {
-        this.data = data;
-    }
-
-    //---
-
     public int getSize() {
         return size;
     }
