@@ -15,27 +15,46 @@ public class FileTreeCellRenderer extends DefaultTreeCellRenderer{
     @Override
     public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
         FileNode selectedNode = (FileNode) value;
-        if(expanded && selectedNode.equals(tree.getLastSelectedPathComponent())){
+        if (expanded) {
             TreePath path = tree.getSelectionPath();
-            currentPath = handlePath(path.toString());
-            System.out.println("path:"+currentPath);
-            selectedNode.removeAllChildren();
-            List<Pair<String, FileTypeEnum>> nodeList = fileSystem.showDirectory(currentPath);
-            for (Pair<String, FileTypeEnum> node : nodeList) {
-                System.out.println(node.toString());
-                FileNode newNode = new FileNode(node.getKey());
-                switch (node.getValue()) {
-                    case INODE_IS_DIRECTORY: {
-                        newNode.setType(0);
-                    }break;
-                    case INODE_IS_REGULAR_FILE: {
-                        newNode.setType(1);
-                    }break;
-                }
-                selectedNode.add(newNode);
+            if (mainWindow.DELETING) {
+                System.out.println("CELL Dee");
+                currentPath = handleFilepath(path);
+                FileNode parent = (FileNode) selectedNode.getParent();
+                parent.removeAllChildren();
+                updateTree(selectedNode);
+                mainWindow.DELETING = false;
+                return super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
             }
+
+            if (selectedNode.equals(tree.getLastSelectedPathComponent()) && !mainWindow.DELETING) {
+                currentPath = handlePath(path.toString());
+                selectedNode.removeAllChildren();
+                updateTree(selectedNode);
+            }
+
+//            if (!mainWindow.DELETING) {
+//
+//            }
+            System.out.println("CELL:" + currentPath);
         }
-        return super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+            return super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+    }
+
+    public void updateTree(FileNode selectedNode){
+        List<Pair<String, FileTypeEnum>> nodeList = fileSystem.showDirectory(currentPath);
+        for (Pair<String, FileTypeEnum> node : nodeList) {
+            FileNode newNode = new FileNode(node.getKey());
+            switch (node.getValue()) {
+                case INODE_IS_DIRECTORY: {
+                    newNode.setType(0);
+                }break;
+                case INODE_IS_REGULAR_FILE: {
+                    newNode.setType(1);
+                }break;
+            }
+            selectedNode.add(newNode);
+        }
     }
 
     public FileTreeCellRenderer(FileSystem f){
@@ -48,5 +67,13 @@ public class FileTreeCellRenderer extends DefaultTreeCellRenderer{
         newPath = path.replaceAll(", ","/");
         //newPath = "/"+newPath;
         return newPath;
+    }
+
+    public String handleFilepath(TreePath path){
+        FileNode selectedNode = (FileNode) path.getLastPathComponent();
+        String currentPath = handlePath(path.toString());
+        currentPath = currentPath.substring(0,currentPath.length()-selectedNode.toString().length());
+        System.out.println("this:"+currentPath);
+        return currentPath;
     }
 }

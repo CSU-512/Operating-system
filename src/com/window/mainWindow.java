@@ -38,6 +38,7 @@ public class mainWindow extends JFrame{
     protected JPopupMenu popupMenu;
     protected JTextPane fileDisplay, commandLine;
     protected FileSystem fileSystem;
+    public static boolean DELETING = false;
 
     public mainWindow(){
         this.setLayout(null);
@@ -66,7 +67,7 @@ public class mainWindow extends JFrame{
         initPane();
         JScrollPane jScrollPane = new JScrollPane(fileTree);
 
-        jScrollPane.setBounds(10,50,200,600);
+        jScrollPane.setBounds(10,50,200,990);
         menuLabel.setBounds(10,10,200,50);
         contentLabel.setBounds(250,10,200,50);
         jscForCommand.setBounds(250,600,500,300);
@@ -77,6 +78,7 @@ public class mainWindow extends JFrame{
         commandLine.setForeground(Color.WHITE);
         //命令行滑条不显示
         jscForCommand.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+
         this.add(jscForDisplay);
         this.add(jscForCommand);
         this.add(menuLabel);
@@ -86,7 +88,6 @@ public class mainWindow extends JFrame{
             @Override
             public void windowClosing(WindowEvent e) {
                 super.windowClosing(e);
-                System.out.println("close");
                 System.exit(0);
             }
         });
@@ -134,19 +135,20 @@ public class mainWindow extends JFrame{
                     popupMenu.show(fileTree,e.getX(),e.getY());
                 }
             }
-
         });
 
         fileTree.addTreeSelectionListener(new TreeSelectionListener() {
             //选择节点触发
             @Override
             public void valueChanged(TreeSelectionEvent e) {
-                TreePath treePath = (TreePath) fileTree.getLeadSelectionPath();
-                FileNode selectedNode = (FileNode) treePath.getLastPathComponent();
-                //String content = fileSystem.readFile()
-                //System.out.println(handlePath(fileTree.getSelectionPath().toString()));
-                if(selectedNode != null)  {}      //删除时触发两次会报错
-                    //fileDisplay.setText(selectedNode.fileContent());
+                fileDisplay.setText("");
+                TreePath treePath = fileTree.getSelectionPath();
+                FileNode selectedNode = (FileNode) fileTree.getLastSelectedPathComponent();
+                if(selectedNode != null && !selectedNode.equals(((DefaultTreeModel) fileTree.getModel()).getRoot()) && selectedNode.isLeaf())  {     //删除时触发两次会报错
+                    String currentPath = handleFilepath(treePath);
+                    String content = fileSystem.readFile(currentPath,selectedNode.toString());
+                    fileDisplay.setText(content);
+                }
             }
         });
     }
@@ -257,22 +259,17 @@ public class mainWindow extends JFrame{
         deleteItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                DELETING = true;
                 FileNode selectedNode = (FileNode) fileTree.getLastSelectedPathComponent();
                 DefaultTreeModel defaultTreeModel = (DefaultTreeModel) fileTree.getModel();
                 //文件
-                if(selectedNode.isLeaf()){
-                    //调用底层函数删除
-                    //。。。。。。
-                    //删除界面上节点
-                    //selectedNode.removeFromParent();
-                    defaultTreeModel.removeNodeFromParent(selectedNode);
-                    defaultTreeModel.reload();
-                }
-                else{
-                    selectedNode.removeAllChildren();
-                    defaultTreeModel.removeNodeFromParent(selectedNode);
-                    defaultTreeModel.reload();
-                }
+                TreePath treePath = fileTree.getSelectionPath();
+                String currentPath = handleFilepath(treePath);
+                System.out.println("remove:"+currentPath+" name:"+selectedNode.toString());
+                fileSystem.remove(currentPath,selectedNode.toString());
+                //defaultTreeModel.removeNodeFromParent(selectedNode);
+                fileSystem.saveCurrentFileSystem();
+                fileTree.updateUI();
                 fileDisplay.setText("");
             }
         });
@@ -301,14 +298,14 @@ public class mainWindow extends JFrame{
         String newPath;
         path = path.substring(1,path.length()-1);
         newPath = path.replaceAll(", ","/");
-        //newPath = "/"+newPath;
         return newPath;
     }
-
+    //专门处理文件需要的路径
     public String handleFilepath(TreePath path){
         FileNode selectedNode = (FileNode) path.getLastPathComponent();
         String currentPath = handlePath(path.toString());
-        currentPath = currentPath.substring(0,currentPath.length() - selectedNode.toString().length());
+        currentPath = currentPath.substring(0,currentPath.length()-selectedNode.toString().length());
+        System.out.println("this:"+currentPath);
         return currentPath;
     }
 
