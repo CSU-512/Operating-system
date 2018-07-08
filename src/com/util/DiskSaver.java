@@ -2,6 +2,8 @@ package com.util;
 
 import com.exception.ExternalStorageSizeException;
 import com.externalStorage.ExternalStorage;
+import org.apache.commons.codec.binary.Base64;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -22,7 +24,11 @@ public class DiskSaver {
         diskInfo.put("diskInUse", externalStorage.getInUse());
         diskInfo.put("diskBlockSize", externalStorage.getBlockSize());
         diskInfo.put("bitDiagram", externalStorage.getBitDiagram());
-        diskInfo.put("data", externalStorage.getData());
+        byte[][] data = externalStorage.getData();
+        JSONArray dataArray = new JSONArray();
+        for (int i = 0; i < data.length; i++)
+            dataArray.put(Base64.encodeBase64String(data[i]));
+        diskInfo.put("data", dataArray);
         File file = new File("src/com/util/Disk.json");
         FileOutputStream out;
         try {
@@ -44,10 +50,10 @@ public class DiskSaver {
         for (int i = 0; i < bitDiagram.length; i++)
             bitDiagram[i] = true;
 
-        System.out.println("蛤".getBytes("GBK").length);
+
         for (int i = 0; i < data.length; i++)
             for (int j = 0; j < data[i].length; j++)
-                data[i][j] = "蛤".getBytes("utf-8")[j%2];
+                data[i][j] = "蛤".getBytes("GBK")[j%2];
 
         ExternalStorage exs = new ExternalStorage(diskSize, diskInUse, diskBlockSize, bitDiagram, data);
 
