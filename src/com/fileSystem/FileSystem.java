@@ -108,6 +108,7 @@ public class FileSystem {//文件系统
         try {
             //先找到代表当前文件的INode
             int currentFileINodeNum = getINodeNumberOfPath(currentPath);//先确定本文件所在目录的INode
+
             currentFileINodeNum = iNodes.get(currentFileINodeNum).getPathMap().get(fileName);
 
             //先释放原来占用的空间
