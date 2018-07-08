@@ -25,29 +25,6 @@ public class ExternalStorage {
         this.data = data;
     }
 
-    //---
-    public void setSize(int size) {
-        this.size = size;
-    }
-
-    public void setInUse(int inUse) {
-        this.inUse = inUse;
-    }
-
-    public void setBlockSize(int blockSize) {
-        this.blockSize = blockSize;
-    }
-
-    public void setBitDiagram(boolean[] bitDiagram) {
-        this.bitDiagram = bitDiagram;
-    }
-
-    public void setData(byte[][] data) {
-        this.data = data;
-    }
-
-    //---
-
     public int getSize() {
         return size;
     }
@@ -72,48 +49,62 @@ public class ExternalStorage {
     public void salloc(int requiredSize, ArrayList<Integer> returnBlock) throws ExternalStorageOutOfStorageException {
         if (this.size - this.inUse < requiredSize)
             throw new ExternalStorageOutOfStorageException(ExceptionEnum.OS_EXTERNAL_STORAGE_OUT_OF_STORAGE_EXCEPTION);
-        for (int i = 0; i < this.bitDiagram.length; i++) {
+        int k = 0;
+        for (int i = 0; i < this.bitDiagram.length && k*(blockSize*1024) < requiredSize; i++) {
             if (!this.bitDiagram[i]) {
                 returnBlock.add(i);
+                k++;
                 this.bitDiagram[i] = true;
             }
         }
     }
 
     // 将原数据和已分配的盘块传入该方法，将数据转为字节型后离散地存储
-    public void putData(String rawData, ArrayList<Integer> allocatedBlock) {
-        byte[] rawByteData = rawData.getBytes();
-        int k = 0;
-        byte[][] separatedByteData = new byte[allocatedBlock.size()][this.blockSize * 1024];
-        for (int i = 0; i < allocatedBlock.size(); i++) {
+    public void putData(byte[] rawByteData, ArrayList<Integer> allocatedBlock) {
+//        byte[] rawByteData = rawData.getBytes();
+        int k = 0, i;
+        // TODO: 2018/7/8 添加方法注释 
+        byte[][] separatedByteData = new byte[allocatedBlock.size()][];
+        for (i = 0; i < rawByteData.length / 1024 / blockSize; i++) {
+            separatedByteData[i] = new byte[1024*blockSize];
             for (int j = 0; j < this.blockSize * 1024; j++) {
                 separatedByteData[i][j] = rawByteData[k++];
             }
         }
+        if(rawByteData.length % (1024*blockSize) > 0){
+            separatedByteData[i] = new byte[rawByteData.length % (1024*blockSize)];
+            for(int j = 0; j < rawByteData.length % (1024*blockSize); j++)
+                separatedByteData[i][j] = rawByteData[k++];
+        }
         k = 0;
-        for (int i : allocatedBlock) {            // 将字节型数据挨个放入磁盘中
-            data[i] = separatedByteData[k++];
+        for (Integer index : allocatedBlock) {            // 将字节型数据挨个放入磁盘中
+            data[index] = separatedByteData[k++];
         }
     }
 
     // 将离散存储的数据拼接起来返回给调用者
-    public String getData(ArrayList<Integer> allocatedBlock) {
-        byte[][] separatedByteData = new byte[allocatedBlock.size()][this.blockSize * 1024];
-        int j = 0, k = 0;
+    public byte[] getData(ArrayList<Integer> allocatedBlock) {
+        byte[][] separatedByteData = new byte[allocatedBlock.size()][/*this.blockSize * 1024*/];
+        int j = 0, k = 0, fileLength = 0;
         for (int i : allocatedBlock) {            // 将离散数据联系起来
             separatedByteData[j++] = data[i];
+            fileLength += data[i].length;
         }
-        byte[] rawByteData = new byte[allocatedBlock.size() * this.blockSize * 1024];
+
+//        byte[] rawByteData = new byte[allocatedBlock.size() * this.blockSize * 1024];
+        byte[] rawByteData = new byte[fileLength];
         for (byte[] i : separatedByteData)        // 将离散数据连接起来
             for (byte l : i)
                 rawByteData[k++] = l;
-        return new String(rawByteData);           // 重新构造字符串
+//        return new String(rawByteData);           // 重新构造字符串
+        return rawByteData;
     }
 
     // 释放参数所指定的盘块
     public void sfree(ArrayList<Integer> usingBlock) {
         for (Integer i : usingBlock)
             this.bitDiagram[i] = false;
+        inUse -= usingBlock.size();
     }
 
         /*
