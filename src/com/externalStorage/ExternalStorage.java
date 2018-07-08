@@ -49,9 +49,11 @@ public class ExternalStorage {
     public void salloc(int requiredSize, ArrayList<Integer> returnBlock) throws ExternalStorageOutOfStorageException {
         if (this.size - this.inUse < requiredSize)
             throw new ExternalStorageOutOfStorageException(ExceptionEnum.OS_EXTERNAL_STORAGE_OUT_OF_STORAGE_EXCEPTION);
-        for (int i = 0; i < this.bitDiagram.length; i++) {
+        int k = 0;
+        for (int i = 0; i < this.bitDiagram.length && k*(blockSize*1024) < requiredSize; i++) {
             if (!this.bitDiagram[i]) {
                 returnBlock.add(i);
+                k++;
                 this.bitDiagram[i] = true;
             }
         }
@@ -82,12 +84,15 @@ public class ExternalStorage {
 
     // 将离散存储的数据拼接起来返回给调用者
     public byte[] getData(ArrayList<Integer> allocatedBlock) {
-        byte[][] separatedByteData = new byte[allocatedBlock.size()][this.blockSize * 1024];
-        int j = 0, k = 0;
+        byte[][] separatedByteData = new byte[allocatedBlock.size()][/*this.blockSize * 1024*/];
+        int j = 0, k = 0, fileLength = 0;
         for (int i : allocatedBlock) {            // 将离散数据联系起来
             separatedByteData[j++] = data[i];
+            fileLength += data[i].length;
         }
-        byte[] rawByteData = new byte[allocatedBlock.size() * this.blockSize * 1024];
+
+//        byte[] rawByteData = new byte[allocatedBlock.size() * this.blockSize * 1024];
+        byte[] rawByteData = new byte[fileLength];
         for (byte[] i : separatedByteData)        // 将离散数据连接起来
             for (byte l : i)
                 rawByteData[k++] = l;
@@ -99,6 +104,7 @@ public class ExternalStorage {
     public void sfree(ArrayList<Integer> usingBlock) {
         for (Integer i : usingBlock)
             this.bitDiagram[i] = false;
+        inUse -= usingBlock.size();
     }
 
         /*
