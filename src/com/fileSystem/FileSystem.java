@@ -4,9 +4,11 @@ package com.fileSystem;
 import com.externalStorage.ExternalStorage;
 import com.internalStorage.InternalStorage;
 import com.util.JSONLoader;
+import com.util.JSONSaver;
 import javafx.util.Pair;
 
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -97,11 +99,7 @@ public class FileSystem {//文件系统
             ArrayList<Integer> blockList = new ArrayList<>();
             externalStorage.salloc(contentByte.length, blockList);
             externalStorage.putData(contentByte, blockList);
-            for (Integer  i : blockList)
-                System.out.print(i + " ");
-            System.out.println();
-
-            System.out.println("In WriteFile: "+content);
+            iNodes.get(currentFileINodeNum).setDataBlockList(blockList);
             return true;
 
         } catch (Exception e) {
@@ -139,11 +137,12 @@ public class FileSystem {//文件系统
         return directoryList;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         FileSystem fileSystem = new FileSystem();
         String currentPath = "~";
         fileSystem.newFile(currentPath, "haha");
         fileSystem.writeFile(currentPath, "haha", "this is haha's content");
         System.out.println(fileSystem.readFile(currentPath, "haha"));
+        JSONSaver.save(fileSystem.externalStorage, fileSystem.iNodes);
     }
 }
