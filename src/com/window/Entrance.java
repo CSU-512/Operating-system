@@ -21,7 +21,7 @@ public class Entrance {
     private JLabel identifierLabel;
     private JLabel passwordLabel;
 
-    Entrance() {
+    private Entrance() {
         GridBagLayout layout = new GridBagLayout();
         Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
         entranceFrame = new JFrame("login");
