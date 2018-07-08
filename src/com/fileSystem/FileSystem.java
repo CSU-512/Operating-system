@@ -30,7 +30,7 @@ public class FileSystem {//文件系统
         }
     }
 
-    private int getINodeNumberOfPath (String currentPath) {
+    private int getINodeNumberOfPath(String currentPath) {
         String[] pathArray = currentPath.split("/");
         int pathINodeNum = 0;//从根结点的INode编号开始向下寻找
 
@@ -40,25 +40,45 @@ public class FileSystem {//文件系统
         return pathINodeNum;
     }
 
+    //更新所有父结点的文件大小
+    private void updateParentINodeInfo(int baseINodeNum) {
+        int parentINodeNum = iNodes.get(baseINodeNum).getParentINumber();
+        int originSize;
+
+        while (parentINodeNum != -1) {
+            originSize = iNodes.get(parentINodeNum).getFileLength();
+            iNodes.get(parentINodeNum).setFileLength(originSize + iNodes.get(baseINodeNum).getFileLength());
+            baseINodeNum = parentINodeNum;
+            parentINodeNum = iNodes.get(baseINodeNum).getParentINumber();
+        }
+    }
+
+    //-------------------可调用的接口---------------------
+
     public void newFile(String currentPath, String fileName) {//新建文件
+        int pathINodeNum = getINodeNumberOfPath(currentPath);
+
         //初始化新INode，并将其加入列表
         INode newINode = new INode();
         newINode.setiNumber(iNodes.size());//当前iNode的编号为0~size-1，因此新结点的编号为size
+        newINode.setParentINumber(pathINodeNum);//设置父结点编号
         newINode.setFileName(fileName);
-        newINode.setFileLength(0);
+        newINode.setFileLength(0);//初始文件长度为0
         newINode.setFileType(FileTypeEnum.INODE_IS_REGULAR_FILE);
         newINode.setDataBlockList(new ArrayList<>());
         iNodes.add(newINode);
 
         //为新文件在当前目录下注册
-        int INodeNum = getINodeNumberOfPath(currentPath);
-        iNodes.get(INodeNum).getPathMap().put(fileName, newINode.getiNumber());
+        iNodes.get(pathINodeNum).getPathMap().put(fileName, newINode.getiNumber());
     }
 
     public void newDirectory(String currentPath, String directoryName) {//新建目录
+        int pathINodeNum = getINodeNumberOfPath(currentPath);
+
         // 初始化新INode，并将其加入列表
         INode newINode = new INode();
         newINode.setiNumber(iNodes.size());//当前iNode的编号为0~size-1，因此新结点的编号为size
+        newINode.setParentINumber(pathINodeNum);//设置父结点编号
         newINode.setFileName(directoryName);
         newINode.setFileLength(0);
         newINode.setFileType(FileTypeEnum.INODE_IS_DIRECTORY);
@@ -66,7 +86,6 @@ public class FileSystem {//文件系统
         iNodes.add(newINode);
 
         //为新文件在当前目录下注册
-        int pathINodeNum = getINodeNumberOfPath(currentPath);
         iNodes.get(pathINodeNum).getPathMap().put(directoryName, newINode.getiNumber());
     }
 
@@ -99,9 +118,10 @@ public class FileSystem {//文件系统
             ArrayList<Integer> blockList = new ArrayList<>();
             externalStorage.salloc(contentByte.length, blockList);
             externalStorage.putData(contentByte, blockList);
-            iNodes.get(currentFileINodeNum).setDataBlockList(blockList);
+            iNodes.get(currentFileINodeNum).setDataBlockList(blockList);//设置新的分配块
+            iNodes.get(currentFileINodeNum).setFileLength(contentByte.length);//设置文件大小
+            updateParentINodeInfo(currentFileINodeNum);//更新父结点文件大小域
             return true;
-
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -109,6 +129,14 @@ public class FileSystem {//文件系统
     }
 
 //    public boolean copy(String sourceFileName, String currentPath, String targetPath) {//文件复制，把源文件复制到目标路径，返回真表示成功，返回假表示失败
+//        if (targetPath.equals(currentPath))//不能把文件复制到当前目录下
+//            return false;
+//
+//        //先找到代表当前文件的INode
+//        int currentFileINodeNum = getINodeNumberOfPath(currentPath);//先确定本文件所在目录的INode
+//        currentFileINodeNum = iNodes.get(currentFileINodeNum).getPathMap().get(sourceFileName);
+//
+//        byte[] contentByte = externalStorage.getData(iNodes.get(currentFileINodeNum).getDataBlockList());
 //
 //    }
 //    public void move(String sourceFileName,String currentPath, String targetPath) {//文件移动，把源文件移动到目标路径
@@ -137,12 +165,25 @@ public class FileSystem {//文件系统
         return directoryList;
     }
 
+    public void saveCurrentFileSystem() {
+        try {
+            JSONSaver.save(externalStorage, iNodes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void main(String[] args) throws IOException {
         FileSystem fileSystem = new FileSystem();
         String currentPath = "~";
         fileSystem.newFile(currentPath, "haha");
         fileSystem.writeFile(currentPath, "haha", "this is haha's content");
-        System.out.println(fileSystem.readFile(currentPath, "haha"));
-        JSONSaver.save(fileSystem.externalStorage, fileSystem.iNodes);
+        fileSystem.newFile(currentPath, "heihei");
+        fileSystem.writeFile(currentPath, "heihei", "this is heihei's content");
+        fileSystem.newFile(currentPath, "heihei");
+        fileSystem.writeFile(currentPath, "heihei", "this is heihei's content");
+        fileSystem.newDirectory(currentPath, "a directory");
+        fileSystem.newFile(currentPath + "/a directory", "haha in dir");
+        fileSystem.saveCurrentFileSystem();
     }
 }

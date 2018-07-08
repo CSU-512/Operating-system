@@ -7,6 +7,7 @@ import java.util.Map;
 
 public class INode implements Serializable {
     private int iNumber;    //inode编号
+    private int parentINumber;   //父结点inode编号
     private String fileName;    //文件名
     private int fileLength;	// 文件字节数
     private FileTypeEnum fileType;//文件类型
@@ -22,8 +23,9 @@ public class INode implements Serializable {
 
     }
 
-    public INode(int iNumber, String fileName, int fileLength, FileTypeEnum fileType, String userID, String groupID, int privilege, Date ctime, Date mtime, Date atime, int linkCount, ArrayList<Integer> dataBlockList, Map<String, Integer> pathMap) {
+    public INode(int iNumber, int parentINumber, String fileName, int fileLength, FileTypeEnum fileType, String userID, String groupID, int privilege, Date ctime, Date mtime, Date atime, int linkCount, ArrayList<Integer> dataBlockList, Map<String, Integer> pathMap) {
         this.iNumber = iNumber;
+        this.parentINumber = parentINumber;
         this.fileName = fileName;
         this.fileLength = fileLength;
         this.fileType = fileType;
@@ -44,6 +46,14 @@ public class INode implements Serializable {
 
     public void setiNumber(int iNumber) {
         this.iNumber = iNumber;
+    }
+
+    public int getParentINumber() {
+        return parentINumber;
+    }
+
+    public void setParentINumber(int parentINumber) {
+        this.parentINumber = parentINumber;
     }
 
     public String getFileName() {
