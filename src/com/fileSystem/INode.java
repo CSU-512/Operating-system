@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.Map;
 
 public class INode implements Serializable {
+    private static final long serialVersionUID = 1L;
     private int iNumber;    //inode编号
     private int parentINumber;   //父结点inode编号
     private String fileName;    //文件名
