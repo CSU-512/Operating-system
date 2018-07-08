@@ -58,8 +58,8 @@ public class ExternalStorage {
     }
 
     // 将原数据和已分配的盘块传入该方法，将数据转为字节型后离散地存储
-    public void putData(String rawData, ArrayList<Integer> allocatedBlock) {
-        byte[] rawByteData = rawData.getBytes();
+    public void putData(byte[] rawByteData, ArrayList<Integer> allocatedBlock) {
+//        byte[] rawByteData = rawData.getBytes();
         int k = 0;
         byte[][] separatedByteData = new byte[allocatedBlock.size()][this.blockSize * 1024];
         for (int i = 0; i < allocatedBlock.size(); i++) {
@@ -74,7 +74,7 @@ public class ExternalStorage {
     }
 
     // 将离散存储的数据拼接起来返回给调用者
-    public String getData(ArrayList<Integer> allocatedBlock) {
+    public byte[] getData(ArrayList<Integer> allocatedBlock) {
         byte[][] separatedByteData = new byte[allocatedBlock.size()][this.blockSize * 1024];
         int j = 0, k = 0;
         for (int i : allocatedBlock) {            // 将离散数据联系起来
@@ -84,7 +84,8 @@ public class ExternalStorage {
         for (byte[] i : separatedByteData)        // 将离散数据连接起来
             for (byte l : i)
                 rawByteData[k++] = l;
-        return new String(rawByteData);           // 重新构造字符串
+//        return new String(rawByteData);           // 重新构造字符串
+        return rawByteData;
     }
 
     // 释放参数所指定的盘块
