@@ -13,9 +13,9 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 public class JSONLoader {
-    private JSONObject jsonObject;
+    private static JSONObject jsonObject;
 
-    public JSONLoader() {
+    static {
         try {
             BufferedReader br = new BufferedReader(new FileReader("src/com/util/Config.json"));
             String line;
@@ -29,7 +29,7 @@ public class JSONLoader {
     }
 
     //利用本地JSON中的“Disk”项构建磁盘对象
-    public ExternalStorage getExternalStorageFromJson() throws ExternalStorageSizeException {
+    public static ExternalStorage getExternalStorageFromJson() throws ExternalStorageSizeException {
         JSONObject diskInfo = jsonObject.getJSONObject("Disk");
         int diskSize = diskInfo.getInt("diskSize");
         int diskInUse = diskInfo.getInt("diskInUse");
@@ -53,10 +53,10 @@ public class JSONLoader {
     }
 
     public static void main(String[] args) throws ExternalStorageSizeException, UnsupportedEncodingException {
-        ExternalStorage exs = new JSONLoader().getExternalStorageFromJson();
+        ExternalStorage exs = JSONLoader.getExternalStorageFromJson();
 
         byte[][] bytes = exs.getData();
         for (int i = 0; i < bytes.length; i++)
-            System.out.println(new String(bytes[i],"utf-8"));
+            System.out.println(new String(bytes[i],"utf-8").length());
     }
 }

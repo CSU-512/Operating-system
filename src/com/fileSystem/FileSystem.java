@@ -1,12 +1,14 @@
 package com.fileSystem;
 
+
 import com.exception.ExternalStorageSizeException;
 import com.externalStorage.ExternalStorage;
 import com.internalStorage.InternalStorage;
+import com.util.JSONLoader;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
-
+import java.util.List;
 
 public class FileSystem {//文件系统
     private ExternalStorage externalStorage;//调用磁盘操作的接口
@@ -14,13 +16,15 @@ public class FileSystem {//文件系统
     private ArrayList<INode> iNodes;//iNode列表
 
     public FileSystem() {
-//        try {
-//
-//        } catch (ExternalStorageSizeException e) {
-//            e.printExceptionMessage();
-//        }
+        try {
+            externalStorage = JSONLoader.getExternalStorageFromJson();
+            internalStorage = new InternalStorage(100);
+            iNodes = new ArrayList<>();
+        } catch (ExternalStorageSizeException e) {
+            e.printExceptionMessage();
+        }
     }
-//
+
 //    public boolean newFile(String currentPath, String fileName) {//新建文件，返回值表示文件创建是否成功；真为成功，假为失败
 //
 //    }
