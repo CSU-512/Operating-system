@@ -390,8 +390,10 @@ public class FileSystem {//文件系统
 
         List<Pair<String, FileTypeEnum>> directoryList = new ArrayList<>();
 
-        if (!FilePrivilege.isOKToDo('v', iNodes.get(pathIndex), currentUser))//如果当前路径用户都不可见则直接返回空列表
+        if (!FilePrivilege.isOKToDo('v', iNodes.get(pathIndex), currentUser)) {//如果当前路径用户都不可见则直接返回空列表
+            System.out.println(FilePrivilege.privilegeToString(iNodes.get(pathIndex).getPrivilege()));
             return directoryList;
+        }
 
         if (iNodes.get(pathIndex).getFileType() == FileTypeEnum.INODE_IS_DIRECTORY) {//如果当前路径指示的是目录，则返回其内部文件列表
             int childINodeNum, childIndex;
