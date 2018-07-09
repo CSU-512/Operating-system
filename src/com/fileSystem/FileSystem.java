@@ -46,8 +46,9 @@ public class FileSystem {//文件系统
         this.currentUser = currentUser;
         try {
             externalStorage = JSONLoader.getExternalStorageFromJson();
-            internalStorage = new InternalStorage(100);
+            internalStorage = new InternalStorage(4096);
             iNodes = JSONLoader.getINodeArray();
+            openedFileList = new ArrayList<>();
             allocatedINodeNum = new HashSet<>();
             for (INode iNode : iNodes)
                 allocatedINodeNum.add(iNode.getiNumber());

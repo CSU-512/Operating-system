@@ -33,6 +33,7 @@ public class InternalStorage {
 
     // 初始化空闲内存表，空闲始址0， 长度size
     public InternalStorage(int size) {
+        this.size = size;
         this.inUse = 0;
         this.availableISTable = new ArrayList<>();
         this.availableISTable.add(new Pair<>(0, size));

@@ -1,6 +1,7 @@
 package com.window;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.*;
 
 public class ExternalAndInternalStorageStatusDialog extends JDialog {
@@ -13,8 +14,11 @@ public class ExternalAndInternalStorageStatusDialog extends JDialog {
     private JLabel esSizeLabel;
 
     public ExternalAndInternalStorageStatusDialog(int esSize, int esInUse, int isSize, int isInUse) {
-        esSizeLabel.setText(String.format("%.2f",esSize * 1.0 / 1024) + "kB");
-        esFreeLabel.setText(String.format("%.2f",(esSize - esInUse) * 1.0 / 1024) + "kB");
+        Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
+        setBounds(dimension.width / 2 - 400 / 2, dimension.height / 2 - 200 / 2, 600, 200);
+
+        esSizeLabel.setText(String.format("%.2f",esSize * 1.0 ) + "kB");
+        esFreeLabel.setText(String.format("%.2f",(esSize - esInUse) * 1.0) + "kB");
         isSizeLabel.setText(String.format("%.2f",isSize * 1.0 / 1024) + "kB");
         isFreeLabel.setText(String.format("%.2f",(isSize - isInUse) * 1.0 / 1024) + "kB");
         setTitle("External and internal storage status");
@@ -66,6 +70,6 @@ public class ExternalAndInternalStorageStatusDialog extends JDialog {
         ExternalAndInternalStorageStatusDialog dialog =
                 new ExternalAndInternalStorageStatusDialog(1024, 42, 1024, 12);
 
-        System.exit(0);
+
     }
 }

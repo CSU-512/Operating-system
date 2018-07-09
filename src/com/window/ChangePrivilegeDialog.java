@@ -8,6 +8,7 @@ import com.userManagement.UserManagement;
 import com.userManagement.UserTypeEnum;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -30,6 +31,9 @@ public class ChangePrivilegeDialog extends JFrame {
     public ChangePrivilegeDialog(INode inode, User performer, UserManagement userManagement) throws OSException {
         JCheckBox[] jCheckBoxes = {checkBox1, checkBox2, checkBox3, checkBox4, checkBox5, checkBox6, checkBox7,
                 checkBox8, checkBox9};
+        Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
+        setBounds(dimension.width / 2 - 400 / 2, dimension.height / 2 - 240 / 2, 370, 240);
+
         for (int i = 0; i < 9; i++) {
             jCheckBoxes[i].setSelected((inode.getPrivilege() & (1 << (8 - i))) > 0);
             System.out.println(1 << (8-i));
