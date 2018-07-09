@@ -1,4 +1,5 @@
 package com.window;
+import com.exception.InternalStorageOutOfStorageException;
 import com.exception.OSException;
 import com.fileSystem.FilePrivilege;
 import com.fileSystem.FileSystem;
@@ -303,7 +304,12 @@ public class mainWindow extends JFrame{
                 }
                 if(selectedNode != null && selectedNode.isLeaf())  {     //删除时触发两次会报错
                     String currentPath = handleFilepath(treePath);
-                    String content = fileSystem.readFile(currentPath,selectedNode.toString());
+                    String content = null;
+                    try {
+                        content = fileSystem.readFile(currentPath,selectedNode.toString());
+                    } catch (InternalStorageOutOfStorageException e1) {
+                        e1.printStackTrace();
+                    }
                     fileDisplay.setText(content);
                 }
                 openButton.setEnabled(false);

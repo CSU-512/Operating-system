@@ -12,23 +12,25 @@ import java.util.Map;
 
 public class INode implements Serializable {
     private static final long serialVersionUID = 1L;
-    private int iNumber;    //inode编号,OK
-    private int parentINumber;   //父结点inode编号,OK
-    private String fileName;    //文件名,OK
-    private int fileLength;	// 文件字节数,OK
-    private FileTypeEnum fileType;//文件类型,OK（除了链接文件）
-    private int userID;	// 文件拥有者ID,NO
-    private int privilege;	// 文件权限,NO
-    private Date ctime, mtime, atime; 	// inode上次变动时间、文件内容上次变动时间、文件上次打开时间,OK
-    private int linkCount;	// 文件链接数,NO
-    private ArrayList<Integer> dataBlockList; 	// 文件数据块列表，供文件使用,OK
-    private Map<String, Integer> pathMap;   //从子inode编号到其路径名的映射，供目录使用,OK
+    private int iNumber;                            // inode编号,OK
+    private int parentINumber;                      // 父结点inode编号,OK
+    private String fileName;                        // 文件名,OK
+    private int fileLength;                         // 文件字节数,OK
+    private FileTypeEnum fileType;                  // 文件类型,OK（除了链接文件）
+    private int userID;                             // 文件拥有者ID,NO
+    private int privilege;                          // 文件权限,NO
+    private Date ctime, mtime, atime;               // inode上次变动时间、文件内容上次变动时间、文件上次打开时间,OK
+    private int linkCount;                          // 文件链接数,NO
+    private ArrayList<Integer> dataBlockList;       // 文件数据块列表，供文件使用,OK
+    private Map<String, Integer> pathMap;           // 从子inode编号到其路径名的映射，供目录使用,OK
 
     public INode() {
 
     }
 
-    public INode(int iNumber, int parentINumber, String fileName, int fileLength, FileTypeEnum fileType, int userID, int privilege, Date ctime, Date mtime, Date atime, int linkCount, ArrayList<Integer> dataBlockList, Map<String, Integer> pathMap) {
+    public INode(int iNumber, int parentINumber, String fileName, int fileLength, FileTypeEnum fileType, int userID,
+                 int privilege, Date ctime, Date mtime, Date atime, int linkCount, ArrayList<Integer> dataBlockList,
+                 Map<String, Integer> pathMap) {
         this.iNumber = iNumber;
         this.parentINumber = parentINumber;
         this.fileName = fileName;
@@ -97,15 +99,16 @@ public class INode implements Serializable {
     }
 
     /**
-     *
      * @param performer 执行者
      * @param privilege 欲设置的权限
-     * @throws OSException  如果执行者最大权限小于预设值的权限，将抛出异常10022
+     * @throws OSException 如果执行者最大权限小于预设值的权限，将抛出异常10022
      */
     public void setPrivilege(User performer, UserManagement um, int privilege) throws OSException {
         // 如果执行者不是文件的所有者，就不可以更新文件权限
-        if(performer.getUID() != userID &&(performer.getUserType().getUserMaximumFilePrivilege() <=
-                um.findUser(userID).getUserType().getUserMaximumFilePrivilege())&&(performer.getUserType().getUserMaximumFilePrivilege() <= privilege))
+        if (performer.getUID() != userID &&
+                (performer.getUserType().getUserMaximumFilePrivilege() <=
+                        um.findUser(userID).getUserType().getUserMaximumFilePrivilege()) &&
+                (performer.getUserType().getUserMaximumFilePrivilege() <= privilege))
             throw new OSException(ExceptionEnum.OS_WEAK_ROLE_EXCEPTION);
         this.privilege = privilege;
     }

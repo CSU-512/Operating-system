@@ -1,6 +1,7 @@
 package com.fileSystem;
 
 
+import com.exception.InternalStorageOutOfStorageException;
 import com.exception.OSException;
 import com.externalStorage.ExternalStorage;
 import com.internalStorage.InternalStorage;
@@ -28,7 +29,7 @@ public class FileSystem {//文件系统
     public FileSystem() {
         try {
             externalStorage = JSONLoader.getExternalStorageFromJson();
-            internalStorage = new InternalStorage(100);
+            internalStorage = new InternalStorage(1024);
             iNodes = JSONLoader.getINodeArray();
             allocatedINodeNum = new HashSet<>();
             for (INode iNode : iNodes)
@@ -162,11 +163,14 @@ public class FileSystem {//文件系统
                 //user：rwvrwv--v
                 //guest：rwvrwvrwv
                 if (currentUser.getUserType() == UserTypeEnum.OS_SUPERUSER)
-                    newINode.setPrivilege(currentUser, userManagement, FilePrivilege.stringToPrivilege("rwv--v--v"));
+                    newINode.setPrivilege(currentUser, userManagement,
+                            FilePrivilege.stringToPrivilege("rwv--v--v"));
                 if (currentUser.getUserType() == UserTypeEnum.OS_USER)
-                    newINode.setPrivilege(currentUser, userManagement, FilePrivilege.stringToPrivilege("rwvrwv--v"));
+                    newINode.setPrivilege(currentUser, userManagement,
+                            FilePrivilege.stringToPrivilege("rwvrwv--v"));
                 if (currentUser.getUserType() == UserTypeEnum.OS_GUEST)
-                    newINode.setPrivilege(currentUser, userManagement, FilePrivilege.stringToPrivilege("rwvrwvrwv"));
+                    newINode.setPrivilege(currentUser, userManagement,
+                            FilePrivilege.stringToPrivilege("rwvrwvrwv"));
             } catch (OSException e) {
                 e.printExceptionMessage();
                 return false;
@@ -184,7 +188,8 @@ public class FileSystem {//文件系统
         }
     }
 
-    public boolean newDirectory(String currentPath, String directoryName) {//新建目录，返回值表示是否新建成功，真为成功，假为失败
+    //新建目录，返回值表示是否新建成功，真为成功，假为失败
+    public boolean newDirectory(String currentPath, String directoryName) {
         int pathINodeNum = getINodeNumberOfPath(currentPath);
         int pathIndex = getIndexFromINodeNum(pathINodeNum);
         int newINodeNum;
@@ -210,11 +215,14 @@ public class FileSystem {//文件系统
                 //user：rwvrwv--v
                 //guest：rwvrwvrwv
                 if (currentUser.getUserType() == UserTypeEnum.OS_SUPERUSER)
-                    newINode.setPrivilege(currentUser, userManagement, FilePrivilege.stringToPrivilege("rwv--v--v"));
+                    newINode.setPrivilege(currentUser, userManagement,
+                            FilePrivilege.stringToPrivilege("rwv--v--v"));
                 if (currentUser.getUserType() == UserTypeEnum.OS_USER)
-                    newINode.setPrivilege(currentUser, userManagement, FilePrivilege.stringToPrivilege("rwvrwv--v"));
+                    newINode.setPrivilege(currentUser, userManagement,
+                            FilePrivilege.stringToPrivilege("rwvrwv--v"));
                 if (currentUser.getUserType() == UserTypeEnum.OS_GUEST)
-                    newINode.setPrivilege(currentUser, userManagement, FilePrivilege.stringToPrivilege("rwvrwvrwv"));
+                    newINode.setPrivilege(currentUser, userManagement,
+                            FilePrivilege.stringToPrivilege("rwvrwvrwv"));
             } catch (OSException e) {
                 e.printExceptionMessage();
                 return false;
@@ -232,7 +240,8 @@ public class FileSystem {//文件系统
         }
     }
 
-    public String readFile(String currentPath, String fileName) {//读文件，返回值为以字符串表示的文件内容
+    public String readFile(String currentPath, String fileName)
+            throws InternalStorageOutOfStorageException {//读文件，返回值为以字符串表示的文件内容
         try {
             //先找到代表当前文件的INode和其在iNodes中的索引位置
             int currentFileINodeNum = getINodeNumberOfPath(currentPath);//先确定本文件所在目录的INode
@@ -242,6 +251,8 @@ public class FileSystem {//文件系统
             //得到磁盘上存储的文件数据
             byte[] fileData = externalStorage.getData(iNodes.get(currentFileIndex).getDataBlockList());
 
+            // 文件打开，为其分配内存
+            internalStorage.isalloc(fileData.length);
             iNodes.get(currentFileIndex).setAtime(new Date());//修改当前文件的打开时间
             updateParentINodeTime(currentFileINodeNum, 'A');//修改父结点目录的的打开时间
 
@@ -252,7 +263,8 @@ public class FileSystem {//文件系统
         }
     }
 
-    public boolean writeFile(String currentPath, String fileName, String content) {//写文件，参数为本次写操作结束后的文件内容，返回值表示本次写操作是否成功；真为成功，假为失败
+    //写文件，参数为本次写操作结束后的文件内容，返回值表示本次写操作是否成功；真为成功，假为失败
+    public boolean writeFile(String currentPath, String fileName, String content) {
         try {
             //先找到代表当前文件的INode和其在iNodes中的索引位置
             int currentFileINodeNum = getINodeNumberOfPath(currentPath);//先确定本文件所在目录的INode
@@ -286,7 +298,8 @@ public class FileSystem {//文件系统
         }
     }
 
-    public boolean copy(String sourceFileName, String currentPath, String targetPath) {//文件复制，把源文件复制到目标路径，返回真表示成功，返回假表示失败
+    //文件复制，把源文件复制到目标路径，返回真表示成功，返回假表示失败
+    public boolean copy(String sourceFileName, String currentPath, String targetPath) {
         //先找到代表当前文件的INode和其在iNodes中的索引位置
         int currentFileINodeNum = getINodeNumberOfPath(currentPath);//先确定本文件所在目录的INode
         currentFileINodeNum = iNodes.get(getIndexFromINodeNum(currentFileINodeNum)).getPathMap().get(sourceFileName);
@@ -324,7 +337,8 @@ public class FileSystem {//文件系统
         return false;
     }
 
-    public boolean move(String sourceFileName,String currentPath, String targetPath) {//文件移动，把源文件移动到目标路径，返回真表示成功，返回假表示失败
+    //文件移动，把源文件移动到目标路径，返回真表示成功，返回假表示失败
+    public boolean move(String sourceFileName,String currentPath, String targetPath) {
         //先找到代表当前文件的INode和其在iNodes中的索引位置
         if (copy(sourceFileName, currentPath, targetPath)) {
             remove(currentPath, sourceFileName);
@@ -355,7 +369,8 @@ public class FileSystem {//文件系统
         if (iNodes.get(currentFileIndex).getFileType() == FileTypeEnum.INODE_IS_DIRECTORY) {
             String directoryName = "/" + sourceFileName;
 
-            //执行递归时，里层递归会利用***标识的语句修改当前对象的pathMap，即边遍历集合，边修改集合，会导致ConcurrentModificationException
+            //执行递归时，里层递归会利用***标识的语句修改当前对象的pathMap，即边遍历集合，
+            //边修改集合，会导致ConcurrentModificationException。
             //为了防止ConcurrentModificationException，用一个临时map存储待删文件的pathMap
             Map<String, Integer> tempMap = new HashMap<>(iNodes.get(currentFileIndex).getPathMap());
 
@@ -385,7 +400,8 @@ public class FileSystem {//文件系统
             }
     }
 
-    public List<Pair<String, FileTypeEnum>> showDirectory(String currentPath) {//根目录路径为 "~"；显示目录内容，参数为路径，返回值为列表；Pair中String参数表示文件或目录名，FileTypeEnum参数标识文件类型
+    //根目录路径为 "~"；显示目录内容，参数为路径，返回值为列表；Pair中String参数表示文件或目录名，FileTypeEnum参数标识文件类型
+    public List<Pair<String, FileTypeEnum>> showDirectory(String currentPath) {
         int pathINodeNum = getINodeNumberOfPath(currentPath);
         int pathIndex = getIndexFromINodeNum(pathINodeNum);
 
@@ -413,12 +429,14 @@ public class FileSystem {//文件系统
         return directoryList;
     }
 
-    public INode getINodeInfo(String filePath) {//返回给定目录的inode信息，filePath表示文件绝对路径，如查看文件haha的INode信息则输入："~/dir/haha"
+    //返回给定目录的inode信息，filePath表示文件绝对路径，如查看文件haha的INode信息则输入："~/dir/haha"
+    public INode getINodeInfo(String filePath) {
         int pathINodeNum = getINodeNumberOfPath(filePath);
         return iNodes.get(getIndexFromINodeNum(pathINodeNum));
     }
 
-    public boolean changePrivilege(String filePath, String privilegeStr) {//为给定文件更改权限，filePath表示文件绝对路径；privilegeStr表示权限字符串，如："rwv--v--v"
+    //为给定文件更改权限，filePath表示文件绝对路径；privilegeStr表示权限字符串，如："rwv--v--v"
+    public boolean changePrivilege(String filePath, String privilegeStr) {
         //返回值为真表示本次设置成功，假表示设置失败
         try {
             int pathINodeNum = getINodeNumberOfPath(filePath);
