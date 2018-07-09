@@ -157,9 +157,10 @@ public class FileSystem {//文件系统
             try {
                 newINode.setUserID(currentUser.getUID());
                 newINode.setGroupID(currentUser.getGID());
-                newINode.setPrivilege(currentUser, 457);//初始权限111001001
+                newINode.setPrivilege(currentUser, FilePrivilege.stringToPrivilege("rwv--v--v"));//初始权限111001001
             } catch (OSException e) {
                 e.printExceptionMessage();
+                return false;
             }
             //初始化各个时间
             newINode.setCtime(new Date());
@@ -196,9 +197,10 @@ public class FileSystem {//文件系统
             try {
                 newINode.setUserID(currentUser.getUID());
                 newINode.setGroupID(currentUser.getGID());
-                newINode.setPrivilege(currentUser, 457);//初始权限111001001
+                newINode.setPrivilege(currentUser, FilePrivilege.stringToPrivilege("rwv--v--v"));//初始权限111001001
             } catch (OSException e) {
                 e.printExceptionMessage();
+                return false;
             }
             //初始化各个时间
             newINode.setCtime(new Date());
@@ -385,6 +387,16 @@ public class FileSystem {//文件系统
     public INode getINodeInfo(String filePath) {//返回给定目录的inode信息，filePath表示文件绝对路径，如查看文件haha的INode信息则输入："~/dir/haha"
         int pathINodeNum = getINodeNumberOfPath(filePath);
         return iNodes.get(getIndexFromINodeNum(pathINodeNum));
+    }
+
+    public void changePrivilege(String filePath, String privilegeStr) {//为给定文件更改权限，filePath表示文件绝对路径；privilegeStr表示权限字符串，如："rwv--v--v"
+        try {
+            int pathINodeNum = getINodeNumberOfPath(filePath);
+            int privilegeNum = FilePrivilege.stringToPrivilege(privilegeStr);
+            iNodes.get(pathINodeNum).setPrivilege(currentUser, privilegeNum);
+        } catch (OSException e) {
+            e.printExceptionMessage();
+        }
     }
 
     public void saveCurrentFileSystem() {
