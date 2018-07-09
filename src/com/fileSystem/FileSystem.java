@@ -1,6 +1,7 @@
 package com.fileSystem;
 
 
+import com.exception.InternalStorageOutOfStorageException;
 import com.exception.OSException;
 import com.externalStorage.ExternalStorage;
 import com.internalStorage.InternalStorage;
@@ -23,6 +24,7 @@ public class FileSystem {//文件系统
     private ExternalStorage externalStorage;//调用磁盘操作的接口
     private InternalStorage internalStorage;//调用内存操作的接口
     private ArrayList<INode> iNodes;//iNode列表
+    private ArrayList<Pair<INode, Integer>> openedFileList;//已打开的文件列表，保存了各文件在内存中的起始位置
     private Set<Integer> allocatedINodeNum;//已分配的inode编号集合
 
     public FileSystem() {
@@ -30,6 +32,7 @@ public class FileSystem {//文件系统
             externalStorage = JSONLoader.getExternalStorageFromJson();
             internalStorage = new InternalStorage(1024);
             iNodes = JSONLoader.getINodeArray();
+            openedFileList = new ArrayList<>();
             allocatedINodeNum = new HashSet<>();
             for (INode iNode : iNodes)
                 allocatedINodeNum.add(iNode.getiNumber());
@@ -248,7 +251,8 @@ public class FileSystem {//文件系统
             int currentFileIndex = getIndexFromINodeNum(currentFileINodeNum);
 
             //分配内存
-            internalStorage.isalloc(iNodes.get(currentFileIndex).getFileLength());
+            int startPos = internalStorage.isalloc(iNodes.get(currentFileIndex).getFileLength());
+            openedFileList.add(new Pair<>(iNodes.get(currentFileIndex), startPos));
 
             //得到磁盘上存储的文件数据
             byte[] fileData = externalStorage.getData(iNodes.get(currentFileIndex).getDataBlockList());
@@ -298,13 +302,19 @@ public class FileSystem {//文件系统
         }
     }
 
+    //关闭文件，回收内存
     public void closeFile(String currentPath, String fileName) {
         //先找到代表当前文件的INode和其在iNodes中的索引位置
         int currentFileINodeNum = getINodeNumberOfPath(currentPath);//先确定本文件所在目录的INode
         currentFileINodeNum = iNodes.get(getIndexFromINodeNum(currentFileINodeNum)).getPathMap().get(fileName);
         int currentFileIndex = getIndexFromINodeNum(currentFileINodeNum);
 
-        internalStorage.
+        for (int i = 0; i < openedFileList.size(); i++)
+            if (openedFileList.get(i).getKey().getiNumber() == iNodes.get(currentFileIndex).getiNumber()) {
+                internalStorage.isfree(new Pair<>(openedFileList.get(i).getValue(), openedFileList.get(i).getKey().getFileLength()));
+                openedFileList.remove(i);
+                break;
+            }
     }
 
     public boolean copy(String sourceFileName, String currentPath, String targetPath) {//文件复制，把源文件复制到目标路径，返回真表示成功，返回假表示失败
@@ -475,6 +485,16 @@ public class FileSystem {//文件系统
                 return false;
         }
         return true;
+    }
+
+    //取得存储器信息，opt标记了取得的是内存信息还是外存信息；'I'表示内存信息，'E'表示外存信息
+    //返回值Pair中的第一个元素表示总容量，第二个元素为已使用容量
+    public Pair<Integer, Integer> getStorageInfo(char opt) {
+        if (opt == 'I')
+            return new Pair<>(internalStorage.getSize(), internalStorage.getInUse());
+        if (opt == 'E')
+            return new Pair<>(externalStorage.getSize(), externalStorage.getInUse());
+        return new Pair<>(-1, -1);
     }
 
     public void saveCurrentFileSystem() {
