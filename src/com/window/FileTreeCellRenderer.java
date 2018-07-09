@@ -15,32 +15,30 @@ public class FileTreeCellRenderer extends DefaultTreeCellRenderer{
     @Override
     public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
         FileNode selectedNode = (FileNode) value;
-        if (expanded) {
-            TreePath path = tree.getSelectionPath();
-            if (mainWindow.DELETING) {
-                System.out.println("CELL Dee");
-                currentPath = handleFilepath(path);
-                FileNode parent = (FileNode) selectedNode.getParent();
-                parent.removeAllChildren();
-                updateTree(selectedNode);
-                mainWindow.DELETING = false;
-                return super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
-            }
-
-            if (selectedNode.equals(tree.getLastSelectedPathComponent()) && !mainWindow.DELETING) {
+        TreePath path = tree.getSelectionPath();
+        if (expanded && selectedNode.equals(tree.getLastSelectedPathComponent())) {
+            if (!mainWindow.DELETING) {
                 currentPath = handlePath(path.toString());
                 selectedNode.removeAllChildren();
                 updateTree(selectedNode);
             }
-
-//            if (!mainWindow.DELETING) {
-//
-//            }
-            System.out.println("CELL:" + currentPath);
         }
             return super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
     }
+    //删除节点
+    public void deleteNode(TreePath path){
+        FileNode selectedNode = (FileNode) path.getLastPathComponent();
+        System.out.println(path.getParentPath().toString());
+        currentPath = handleFilepath(path);
+        FileNode parent = (FileNode) path.getParentPath().getLastPathComponent();
+        System.out.println(parent.toString());
+        parent.removeAllChildren();
+        updateTree(parent);
 
+        mainWindow.DELETING = false;
+    }
+
+    //更新树节点
     public void updateTree(FileNode selectedNode){
         List<Pair<String, FileTypeEnum>> nodeList = fileSystem.showDirectory(currentPath);
         for (Pair<String, FileTypeEnum> node : nodeList) {
@@ -60,7 +58,7 @@ public class FileTreeCellRenderer extends DefaultTreeCellRenderer{
     public FileTreeCellRenderer(FileSystem f){
         this.fileSystem = f;
     }
-
+    //带文件名的当前路径，一般添加文件使用
     public String handlePath(String path){
         String newPath;
         path = path.substring(1,path.length()-1);
@@ -68,7 +66,7 @@ public class FileTreeCellRenderer extends DefaultTreeCellRenderer{
         //newPath = "/"+newPath;
         return newPath;
     }
-
+    //不带文件名的当前路径
     public String handleFilepath(TreePath path){
         FileNode selectedNode = (FileNode) path.getLastPathComponent();
         String currentPath = handlePath(path.toString());
