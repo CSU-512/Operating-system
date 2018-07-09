@@ -86,11 +86,13 @@ public class FileSystem {//文件系统
 
     public boolean newFile(String currentPath, String fileName) {//新建文件，返回值表示是否新建成功，真为成功，假为失败
         int pathINodeNum = getINodeNumberOfPath(currentPath);
-        int newINodeNum = allocateINodeNum();
         int pathIndex = getIndexFromINodeNum(pathINodeNum);
+        int newINodeNum;
 
-        //先判断当前目录下是否有重名的文件，有则新建失败；或如果新分得的inode编号为-1则新建失败
-        if (iNodes.get(pathIndex).getPathMap().containsKey(fileName) || newINodeNum == -1)
+        //先判断当前目录下是否有重名的文件，有则新建失败
+        if (iNodes.get(pathIndex).getPathMap().containsKey(fileName))
+            return false;
+        else if ((newINodeNum = allocateINodeNum()) == -1)//如果新分得的inode编号为-1则新建失败
             return false;
         else {
             //初始化新INode，并将其加入列表
@@ -111,11 +113,13 @@ public class FileSystem {//文件系统
 
     public boolean newDirectory(String currentPath, String directoryName) {//新建目录，返回值表示是否新建成功，真为成功，假为失败
         int pathINodeNum = getINodeNumberOfPath(currentPath);
-        int newINodeNum = allocateINodeNum();
         int pathIndex = getIndexFromINodeNum(pathINodeNum);
+        int newINodeNum;
 
-        //先判断当前目录下是否有重名的文件，有则新建失败；或如果新分得的inode编号为-1则新建失败
-        if (iNodes.get(pathIndex).getPathMap().containsKey(directoryName) || newINodeNum == -1)
+        //先判断当前目录下是否有重名的文件，有则新建失败
+        if (iNodes.get(pathIndex).getPathMap().containsKey(directoryName))
+            return false;
+        else if ((newINodeNum = allocateINodeNum()) == -1)//如果新分得的inode编号为-1则新建失败
             return false;
         else {
             // 初始化新INode，并将其加入列表
@@ -240,38 +244,36 @@ public class FileSystem {//文件系统
             return;
         }
 
-        //保存所有需要回收的iNode编号，最后一同回收，同时删除iNodes中的结点元素
-        Set<Integer> iNodeNumToRetrieve = new HashSet<>();
+        //记录下当前文件的inode编号，后续执行删除操作
+        int INodeNum = iNodes.get(currentFileIndex).getiNumber();
 
         //如果sourceFile是目录，则递归回收空间
         if (iNodes.get(currentFileIndex).getFileType() == FileTypeEnum.INODE_IS_DIRECTORY) {
             String directoryName = "/" + sourceFileName;
-            for (String key : iNodes.get(currentFileIndex).getPathMap().keySet())
-                remove(currentPath + directoryName, key);
-            iNodes.get(currentFileIndex).getPathMap().clear();
-            iNodes.get(getIndexFromINodeNum(parentINodeNum)).getPathMap().remove(sourceFileName);
-        }
-        else {//否则说明sourceFile是普通文件，可以直接回收空间
 
-            //先回收磁盘空间
+            //防止ConcurrentModificationException，用一个临时map存储待删文件的pathMap
+            Map<String, Integer> tempMap = new HashMap<>(iNodes.get(currentFileIndex).getPathMap());
+
+            for (String key : tempMap.keySet())
+                remove(currentPath + directoryName, key);
+        }
+        else //否则说明sourceFile是普通文件，可以直接回收空间
             externalStorage.sfree(iNodes.get(currentFileIndex).getDataBlockList());
 
-            //将inode编号加入待回收集合
-            iNodeNumToRetrieve.add(iNodes.get(currentFileIndex).getiNumber());
-        }
+
+        //删除父节点Map中的信息
+        iNodes.get(getIndexFromINodeNum(parentINodeNum)).getPathMap().remove(sourceFileName);
 
         //更新父结点的文件大小
         updateParentINodeInfo(currentFileINodeNum, 0 - iNodes.get(currentFileIndex).getFileLength());
 
-        //统一回收INodeNum
-        for (Integer INodeNum : iNodeNumToRetrieve) {
-            allocatedINodeNum.remove(INodeNum);
-            for (int i = 0; i < iNodes.size(); i++)
-                if (iNodes.get(i).getiNumber() == INodeNum) {
-                    iNodes.remove(i);
-                    break;
-                }
-        }
+        allocatedINodeNum.remove(INodeNum);
+        for (int i = 0; i < iNodes.size(); i++)
+            if (iNodes.get(i).getiNumber() == INodeNum) {
+                System.out.println(iNodes.get(i).getFileName());
+                iNodes.remove(i);
+                break;
+            }
     }
 
     public List<Pair<String, FileTypeEnum>> showDirectory(String currentPath) {//根目录路径为 “~”；显示目录内容，参数为路径，返回值为列表；Pair中String参数表示文件或目录名，FileTypeEnum参数标识文件类型
@@ -302,17 +304,27 @@ public class FileSystem {//文件系统
     public static void main(String[] args) throws IOException {
         FileSystem fileSystem = new FileSystem();
         String currentPath = "~";
-//        if (fileSystem.newFile(currentPath, "haha"))
-//            fileSystem.writeFile(currentPath, "haha", "this is haha's content");
-//
-//        if (fileSystem.newFile(currentPath, "heihei"))
-//            fileSystem.writeFile(currentPath, "heihei", "this is heihei's content");
-//
-//        if (fileSystem.newDirectory(currentPath, "directory"))
-//            fileSystem.newFile(currentPath + "/directory", "haha in dir");
-        //fileSystem.move("heihei",currentPath,currentPath+"/directory");
-        fileSystem.remove(currentPath, "directory");
+        if (fileSystem.newFile(currentPath, "haha"))
+            fileSystem.writeFile(currentPath, "haha", "this is haha's content");
 
+        if (fileSystem.newFile(currentPath, "heihei"))
+            fileSystem.writeFile(currentPath, "heihei", "this is heihei's content");
+
+        if (fileSystem.newDirectory(currentPath, "directory"))
+            fileSystem.newFile(currentPath + "/directory", "haha in dir");
+
+        currentPath = currentPath + "/directory";
+        fileSystem.newFile(currentPath, "file1");
+        fileSystem.newDirectory(currentPath, "inDirectory");
+        currentPath = currentPath + "/inDirectory";
+        fileSystem.newFile(currentPath, "file2");
+
+        //fileSystem.move("heihei",currentPath,currentPath+"/directory");
+        //fileSystem.remove(currentPath, "directory");
+        System.out.println(fileSystem.allocatedINodeNum);
+        for (INode i : fileSystem.iNodes) {
+            System.out.println(i.getiNumber() + ": " + i.getFileName());
+        }
         fileSystem.saveCurrentFileSystem();
     }
 }
