@@ -50,6 +50,7 @@ public class mainWindow extends JFrame{
     private int pastePrefix = 0;              //粘贴前缀，无，复制，剪切
     private String commandPath = "~";
     private Set<String> keywords;
+    private JButton openButton = new JButton("打开");
 
     public mainWindow(UserManagement userManagement, User currentUser){
         this.userManagement = userManagement;
@@ -158,6 +159,7 @@ public class mainWindow extends JFrame{
             //选择节点触发
             @Override
             public void valueChanged(TreeSelectionEvent e) {
+                openButton.setEnabled(true);
                 fileDisplay.setText("");
                 TreePath treePath = fileTree.getSelectionPath();
                 FileNode selectedNode = (FileNode) fileTree.getLastSelectedPathComponent();
@@ -224,7 +226,6 @@ public class mainWindow extends JFrame{
         JButton editButton = new JButton("修改");
         JButton saveButton = new JButton("保存");
         JButton cancelButton = new JButton("取消");
-        JButton openButton = new JButton("打开");
         JButton closeButton = new JButton("关闭");
         //点击修改触发事件
         editButton.addActionListener(new ActionListener() {
@@ -544,7 +545,8 @@ public class mainWindow extends JFrame{
                     switch (firstWord){
                         case "touch":{
                             String currentPath = commandPath;
-                            command = command.replace("touch","");
+                            //command = command.replace("touch","");
+                            command = command.substring(firstWord.length());
                             String newName = command.trim();
                             fileSystem.newFile(currentPath,newName);
                             fileSystem.writeFile(currentPath,newName,"");
@@ -552,7 +554,8 @@ public class mainWindow extends JFrame{
                             fileTree.updateUI();
                         }break;
                         case "mkdir":{
-                            command = command.replace("mkdir","");
+                            command = command.substring(firstWord.length());
+                            //command = command.replace("mkdir","");
                             String newName = command.trim();
                             fileSystem.newDirectory(commandPath,newName);
                             fileSystem.saveCurrentFileSystem();
@@ -562,6 +565,28 @@ public class mainWindow extends JFrame{
 
                         }break;
                         case "write":{
+                            //write实例： write ~/abc/acc -m content
+                            command = command.substring(firstWord.length());
+                            String path = command.substring(0,command.indexOf("-m"));
+                            //获取要写文件的绝对路径
+                            path = path.trim();
+                            if(!fileSystem.checkPath(path)){
+                                commandLine.replaceSelection("\"" + path + "\" 不是一个正确的地址\n");
+                                break;
+                            }
+                            //取得当前路径
+                            String currentPath = path.substring(0,path.lastIndexOf('/'));
+                            String filename = path.substring(path.lastIndexOf('/')+1);
+                            System.out.println("path:"+path+" cur:"+currentPath+" file:"+filename);
+                            String content = command.substring(command.indexOf("-m")+2);
+                            content = content.trim();
+                            INode iNode = fileSystem.getINodeInfo(path);
+                            if(!FilePrivilege.isOKToDo('w', iNode, currentUser)) {
+                                commandLine.replaceSelection("\"" + command + "\" 权限不足\n");
+                                break;
+                            }
+                            fileSystem.writeFile(currentPath,filename,content);
+                            fileSystem.saveCurrentFileSystem();
 
                         }break;
                         case "cp":{
@@ -583,8 +608,12 @@ public class mainWindow extends JFrame{
                             commandLine.setText("");
                         }break;
                         case "cd":{
-                            command = command.replace("cd","");
+                            command = command.substring(firstWord.length());
                             command = command.trim();
+                            if(!fileSystem.checkPath(command)){
+                                commandLine.replaceSelection("\"" + command + "\" 不是一个正确的地址\n");
+                                break;
+                            }
                             commandPath = command;
                             System.out.println(commandPath);
                         }break;
