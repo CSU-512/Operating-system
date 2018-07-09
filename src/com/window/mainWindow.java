@@ -1,4 +1,5 @@
 package com.window;
+import com.exception.InternalStorageOutOfStorageException;
 import com.exception.OSException;
 import com.fileSystem.FilePrivilege;
 import com.fileSystem.FileSystem;
@@ -51,6 +52,9 @@ public class mainWindow extends JFrame{
     private String commandPath = "~";
     private Set<String> keywords;
     private JButton openButton = new JButton("打开");
+    private JButton editButton = new JButton("修改");
+    private JButton saveButton = new JButton("保存");
+    private JButton cancelButton = new JButton("取消");
 
     public mainWindow(UserManagement userManagement, User currentUser){
         this.userManagement = userManagement;
@@ -160,10 +164,14 @@ public class mainWindow extends JFrame{
             @Override
             public void valueChanged(TreeSelectionEvent e) {
                 openButton.setEnabled(true);
+                editButton.setVisible(false);
+                saveButton.setVisible(false);
+                cancelButton.setVisible(false);
                 fileDisplay.setText("");
                 TreePath treePath = fileTree.getSelectionPath();
                 FileNode selectedNode = (FileNode) fileTree.getLastSelectedPathComponent();
                 if(!DELETING && (selectedNode != null &&!selectedNode.isLeaf())){
+                    openButton.setEnabled(false);
                     String currentPath = handlePath(treePath.toString());
                     List<Pair<String, FileTypeEnum>> nodeList = fileSystem.showDirectory(currentPath);
                     System.out.println(selectedNode.toString());
@@ -184,6 +192,9 @@ public class mainWindow extends JFrame{
                             defaultTreeModel1.insertNodeInto(newNode,selectedNode,selectedNode.getChildCount());
                         }
                     }
+                }
+                else {
+                    openButton.setEnabled(true);
                 }
                 SwingUtilities.invokeLater(new Runnable() {
                     @Override
@@ -223,9 +234,6 @@ public class mainWindow extends JFrame{
 
     //初始化按钮组
     public void initButtons(){
-        JButton editButton = new JButton("修改");
-        JButton saveButton = new JButton("保存");
-        JButton cancelButton = new JButton("取消");
         JButton closeButton = new JButton("关闭");
         //点击修改触发事件
         editButton.addActionListener(new ActionListener() {
@@ -296,7 +304,12 @@ public class mainWindow extends JFrame{
                 }
                 if(selectedNode != null && selectedNode.isLeaf())  {     //删除时触发两次会报错
                     String currentPath = handleFilepath(treePath);
-                    String content = fileSystem.readFile(currentPath,selectedNode.toString());
+                    String content = null;
+                    try {
+                        content = fileSystem.readFile(currentPath,selectedNode.toString());
+                    } catch (InternalStorageOutOfStorageException e1) {
+                        e1.printStackTrace();
+                    }
                     fileDisplay.setText(content);
                 }
                 openButton.setEnabled(false);
@@ -602,7 +615,17 @@ public class mainWindow extends JFrame{
 
                         }break;
                         case "ls":{
-
+                            List<Pair<String, FileTypeEnum>> nodelist = fileSystem.showDirectory(commandPath);
+                            for(Pair<String, FileTypeEnum> node : nodelist){
+                                switch (node.getValue()){
+                                    case INODE_IS_REGULAR_FILE:{
+                                        commandLine.replaceSelection(node.getKey()+"\n");
+                                    }break;
+                                    case INODE_IS_DIRECTORY:{
+                                        commandLine.replaceSelection(node.getKey()+"/\n");
+                                    }
+                                }
+                            }
                         }break;
                         case "clear":{
                             commandLine.setText("");
