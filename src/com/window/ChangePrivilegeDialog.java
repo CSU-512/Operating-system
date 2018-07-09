@@ -4,6 +4,7 @@ import com.exception.OSException;
 import com.fileSystem.FilePrivilege;
 import com.fileSystem.INode;
 import com.userManagement.User;
+import com.userManagement.UserManagement;
 import com.userManagement.UserTypeEnum;
 
 import javax.swing.*;
@@ -26,7 +27,7 @@ public class ChangePrivilegeDialog extends JFrame {
     private JCheckBox checkBox9;
     private JPanel panel1;
 
-    public ChangePrivilegeDialog(INode inode, User performer, int privilege) throws OSException {
+    public ChangePrivilegeDialog(INode inode, User performer, UserManagement userManagement, int privilege) throws OSException {
         JCheckBox[] jCheckBoxes = {checkBox1, checkBox2, checkBox3, checkBox4, checkBox5, checkBox6, checkBox7,
                 checkBox8, checkBox9};
         for (int i = 0; i < 9; i++) {
@@ -57,7 +58,7 @@ public class ChangePrivilegeDialog extends JFrame {
                         privilege |= (1 << (8-i));
                 }
                 try {
-                    inode.setPrivilege(performer, privilege);
+                    inode.setPrivilege(performer, userManagement, privilege);
                 } catch (OSException e1) {
                     e1.printStackTrace();
                 }
