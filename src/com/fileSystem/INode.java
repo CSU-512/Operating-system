@@ -4,7 +4,6 @@ import com.exception.ExceptionEnum;
 import com.exception.OSException;
 import com.userManagement.User;
 import com.userManagement.UserManagement;
-import com.userManagement.UserTypeEnum;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -19,7 +18,6 @@ public class INode implements Serializable {
     private int fileLength;	// 文件字节数,OK
     private FileTypeEnum fileType;//文件类型,OK（除了链接文件）
     private int userID;	// 文件拥有者ID,NO
-    private int groupID;	// 文件组ID,NO
     private int privilege;	// 文件权限,NO
     private Date ctime, mtime, atime; 	// inode上次变动时间、文件内容上次变动时间、文件上次打开时间,OK
     private int linkCount;	// 文件链接数,NO
@@ -30,14 +28,13 @@ public class INode implements Serializable {
 
     }
 
-    public INode(int iNumber, int parentINumber, String fileName, int fileLength, FileTypeEnum fileType, int userID, int groupID, int privilege, Date ctime, Date mtime, Date atime, int linkCount, ArrayList<Integer> dataBlockList, Map<String, Integer> pathMap) {
+    public INode(int iNumber, int parentINumber, String fileName, int fileLength, FileTypeEnum fileType, int userID, int privilege, Date ctime, Date mtime, Date atime, int linkCount, ArrayList<Integer> dataBlockList, Map<String, Integer> pathMap) {
         this.iNumber = iNumber;
         this.parentINumber = parentINumber;
         this.fileName = fileName;
         this.fileLength = fileLength;
         this.fileType = fileType;
         this.userID = userID;
-        this.groupID = groupID;
         this.privilege = privilege;
         this.ctime = ctime;
         this.mtime = mtime;
@@ -93,14 +90,6 @@ public class INode implements Serializable {
 
     public void setUserID(int userID) {
         this.userID = userID;
-    }
-
-    public int getGroupID() {
-        return groupID;
-    }
-
-    public void setGroupID(int groupID) {
-        this.groupID = groupID;
     }
 
     public int getPrivilege() {
