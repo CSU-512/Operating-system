@@ -42,6 +42,7 @@ public class CreateUserDialog extends JFrame {
                         userManagement.createNewUser(performer, username, password, 0,
                                 UserTypeEnum.getUserTypeByString((String) comboBox1.getSelectedItem())
                         );
+
                         dispose();
                     } catch (OSException e1) {
                         e1.printStackTrace();

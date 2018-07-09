@@ -104,14 +104,8 @@ public class INode implements Serializable {
      */
     public void setPrivilege(User performer, UserManagement um, int privilege) throws OSException {
         // 如果执行者不是文件的所有者，就不可以更新文件权限
-        if(performer.getUID() != userID)
-            throw new OSException(ExceptionEnum.OS_WEAK_ROLE_EXCEPTION);
-        // 如果执行者角色等级不大于文件所有者角色等级，就不可以更新文件权限
-        if(performer.getUserType().getUserMaximumFilePrivilege() <=
-                um.findUser(userID).getUserType().getUserMaximumFilePrivilege())
-            throw new OSException(ExceptionEnum.OS_WEAK_ROLE_EXCEPTION);
-        // 执行者不可以操作比自己等级更高的那部分权限
-        if(performer.getUserType().getUserMaximumFilePrivilege() <= privilege)
+        if(performer.getUID() != userID &&(performer.getUserType().getUserMaximumFilePrivilege() <=
+                um.findUser(userID).getUserType().getUserMaximumFilePrivilege())&&(performer.getUserType().getUserMaximumFilePrivilege() <= privilege))
             throw new OSException(ExceptionEnum.OS_WEAK_ROLE_EXCEPTION);
         this.privilege = privilege;
     }

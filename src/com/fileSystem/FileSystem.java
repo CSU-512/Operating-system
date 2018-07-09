@@ -256,6 +256,7 @@ public class FileSystem {//文件系统
         try {
             //先找到代表当前文件的INode和其在iNodes中的索引位置
             int currentFileINodeNum = getINodeNumberOfPath(currentPath);//先确定本文件所在目录的INode
+            System.out.println(iNodes.get(getIndexFromINodeNum(currentFileINodeNum)).getPathMap());
             currentFileINodeNum = iNodes.get(getIndexFromINodeNum(currentFileINodeNum)).getPathMap().get(fileName);
             int currentFileIndex = getIndexFromINodeNum(currentFileINodeNum);
 
@@ -390,8 +391,10 @@ public class FileSystem {//文件系统
 
         List<Pair<String, FileTypeEnum>> directoryList = new ArrayList<>();
 
+        System.out.println(FilePrivilege.privilegeToString(iNodes.get(pathIndex).getPrivilege()));
+
         if (!FilePrivilege.isOKToDo('v', iNodes.get(pathIndex), currentUser)) {//如果当前路径用户都不可见则直接返回空列表
-            System.out.println(FilePrivilege.privilegeToString(iNodes.get(pathIndex).getPrivilege()));
+            //System.out.println(FilePrivilege.privilegeToString(iNodes.get(pathIndex).getPrivilege()));
             return directoryList;
         }
 
