@@ -6,7 +6,6 @@ import com.exception.ExternalStorageSizeException;
 
 import java.util.ArrayList;
 
-// TODO: 2018/7/7 待测试文件写入和读出功能 
 public class ExternalStorage {
     private int size;                       // 磁盘空间(kbyte)
     private int inUse;                      // 已用空间(kbyte)
@@ -45,7 +44,13 @@ public class ExternalStorage {
         return data;
     }
 
-    // 为文件分配盘块，分配的结果存放在returnBlock中
+    /**
+     *
+     * @param requiredSize  (byte)需要的字节数
+     * @param returnBlock   将分配的盘块号存入此数组中
+     * @throws ExternalStorageOutOfStorageException 外存空间不足时抛出
+     * @apiNote 为文件分配盘块，分配的结果存放在returnBlock中
+     */
     public void salloc(int requiredSize, ArrayList<Integer> returnBlock) throws ExternalStorageOutOfStorageException {
         if (this.size - this.inUse < requiredSize)
             throw new ExternalStorageOutOfStorageException(ExceptionEnum.OS_EXTERNAL_STORAGE_OUT_OF_STORAGE_EXCEPTION);
@@ -64,14 +69,15 @@ public class ExternalStorage {
     public void putData(byte[] rawByteData, ArrayList<Integer> allocatedBlock) {
 //        byte[] rawByteData = rawData.getBytes();
         int k = 0, i;
-        // TODO: 2018/7/8 添加方法注释 
         byte[][] separatedByteData = new byte[allocatedBlock.size()][];
+        // 为整除盘块长度的部分分配完整盘块
         for (i = 0; i < rawByteData.length / 1024 / blockSize; i++) {
             separatedByteData[i] = new byte[1024*blockSize];
             for (int j = 0; j < this.blockSize * 1024; j++) {
                 separatedByteData[i][j] = rawByteData[k++];
             }
         }
+        // 为除盘块长度得到的余数部分分配部分盘块，剩余容量成为内碎片
         if(rawByteData.length % (1024*blockSize) > 0){
             separatedByteData[i] = new byte[rawByteData.length % (1024*blockSize)];
             for(int j = 0; j < rawByteData.length % (1024*blockSize); j++)
