@@ -32,6 +32,8 @@ public class ChangePrivilegeDialog extends JFrame {
                 checkBox8, checkBox9};
         for (int i = 0; i < 9; i++) {
             jCheckBoxes[i].setSelected((inode.getPrivilege() & (1 << (8 - i))) > 0);
+            System.out.println(1 << (8-i));
+            System.out.println(performer.getUserType().getUserMaximumFilePrivilege());
             if((1<<(8-i)) > performer.getUserType().getUserMaximumFilePrivilege())
                 jCheckBoxes[i].setEnabled(false);
 //            jCheckBoxes[i].setSelected((FilePrivilege.stringToPrivilege("rwv--v--v") & (1 << (8 - i))) > 0);
