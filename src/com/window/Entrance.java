@@ -106,10 +106,10 @@ public class Entrance {
                     UserManagement um = new UserManagement(new File("UserManagement.json"));
                     if(identifierIsUsername){
                         if(um.userLogin(usernameOrUID, password))
-                            new mainWindow();
+                            new mainWindow(um, um.findUser(usernameOrUID));
                     }else{
                         if(um.userLogin(Integer.valueOf(usernameOrUID), password))
-                            new mainWindow();
+                            new mainWindow(um, um.findUser(Integer.valueOf(usernameOrUID)));
                     }
 //                    entranceFrame.setVisible(false); // 通过身份验证后隐藏登录窗口
                     entranceFrame.dispose();
@@ -170,7 +170,7 @@ public class Entrance {
         gridBagConstraints.gridy = gridy;
     }
 
-    public static void main(String[] args) {
-        new Entrance();
-    }
+//    public static void main(String[] args) {
+//        new Entrance();
+//    }
 }

@@ -3,6 +3,8 @@ package com.fileSystem;
 
 import com.externalStorage.ExternalStorage;
 import com.internalStorage.InternalStorage;
+import com.userManagement.User;
+import com.userManagement.UserManagement;
 import com.util.JSONLoader;
 import com.util.JSONSaver;
 import javafx.util.Pair;
@@ -14,12 +16,16 @@ import java.util.*;
 
 
 public class FileSystem {//文件系统
+    private UserManagement userManagement;
+    private User currentUser;
     private ExternalStorage externalStorage;//调用磁盘操作的接口
     private InternalStorage internalStorage;//调用内存操作的接口
     private ArrayList<INode> iNodes;//iNode列表
     private Set<Integer> allocatedINodeNum;//已分配的inode编号集合
 
-    public FileSystem() {
+    public FileSystem(UserManagement userManagement, User currentUser) {
+        this.userManagement = userManagement;
+        this.currentUser = currentUser;
         try {
             externalStorage = JSONLoader.getExternalStorageFromJson();
             internalStorage = new InternalStorage(100);

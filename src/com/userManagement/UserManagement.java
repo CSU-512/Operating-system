@@ -73,8 +73,10 @@ public class UserManagement implements Serializable {
 
     // 指定用户名、密码、GID以及用户类型，建立新用户
     public void createNewUser(
-            String userName, String password, int GID, UserTypeEnum userType
-    ) {
+            User performer, String userName, String password, int GID, UserTypeEnum userType
+    ) throws OSException {
+        if(performer.getUserType().getUserMaximumFilePrivilege() < userType.getUserMaximumFilePrivilege())
+            throw new OSException(ExceptionEnum.OS_WEAK_ROLE_EXCEPTION);
         int UID = UIDalloc();
         try {
             User newUser = new User(userType, userName, UID, GID, password);
@@ -85,10 +87,12 @@ public class UserManagement implements Serializable {
     }
 
     // 按用户名删除用户并释放UID
-    public void deleteUser(String userName) throws OSException {
+    public void deleteUser(User performer, String userName) throws OSException {
         User user = findUser(userName);
         if(user == null)
             throw new OSException(ExceptionEnum.OS_NO_SUCH_USER_EXCEPTION);
+        if(performer.getUserType().getUserMaximumFilePrivilege() <= user.getUserType().getUserMaximumFilePrivilege())
+            throw new OSException(ExceptionEnum.OS_WEAK_ROLE_EXCEPTION);
         userList.remove(user);
         UIDList[user.getUID()] = false;
     }
@@ -125,5 +129,9 @@ public class UserManagement implements Serializable {
             if(u.getUID() == UID)
                 return u;
         return null;
+    }
+
+    public ArrayList<User> getUserList() {
+        return userList;
     }
 }

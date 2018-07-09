@@ -6,14 +6,18 @@ public enum UserTypeEnum {
     OS_GUEST(7, "guest");
 
     private String userType;
-    private int privilege;
+    private int filePrivilege;
 
-    UserTypeEnum(int privilege,String userType){
+    UserTypeEnum(int filePrivilege, String userType) {
         this.userType = userType;
-        this.privilege = privilege;
+        this.filePrivilege = filePrivilege;
     }
 
     public String getUserType() {
         return userType;
+    }
+
+    public int getUserMaximumFilePrivilege() {
+        return filePrivilege;
     }
 }
