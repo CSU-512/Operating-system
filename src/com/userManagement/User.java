@@ -1,5 +1,8 @@
 package com.userManagement;
 
+import com.exception.ExceptionEnum;
+import com.exception.OSException;
+
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -42,6 +45,18 @@ public class User implements Serializable {
 
     public String getPassword() {
         return password;
+    }
+
+    /**
+     *
+     * @param performer     执行者
+     * @param userTypeEnum  欲设值的角色等级
+     * @throws OSException  如果执行者等级不大于被操作者等级，即抛出异常10022
+     */
+    public void changeUserRole(User performer, UserTypeEnum userTypeEnum) throws OSException {
+        if(performer.getUserType().getUserMaximumFilePrivilege() <= getUserType().getUserMaximumFilePrivilege())
+            throw new OSException(ExceptionEnum.OS_WEAK_ROLE_EXCEPTION);
+        userType = userTypeEnum;
     }
 
     // 将摘要内容转成十六进制字符串保存在域中

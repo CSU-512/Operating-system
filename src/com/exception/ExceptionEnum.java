@@ -5,6 +5,7 @@ public enum ExceptionEnum {
     OS_EXTERNAL_STORAGE_OUT_OF_STORAGE_EXCEPTION(10002, "外存容量不足"),
     OS_INTERNAL_STORAGE_OUT_OF_STORAGE_EXCEPTION(10011, "内存容量不足"),
     OS_NO_SUCH_USER_EXCEPTION(10021, "用户不存在"),
+    OS_WEAK_ROLE_EXCEPTION(10022,"用户角色等级不足"),
     OS_OTHER_EXCEPTION(99999, "其他异常");
 
     private int exceptionCode;

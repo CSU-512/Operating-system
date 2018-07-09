@@ -1,6 +1,8 @@
 package com.window;
 import com.fileSystem.FileSystem;
 import com.fileSystem.FileTypeEnum;
+import com.userManagement.User;
+import com.userManagement.UserManagement;
 import com.util.JSONSaver;
 import javafx.util.Pair;
 import javax.swing.*;
@@ -34,6 +36,8 @@ class FileNode extends DefaultMutableTreeNode{
 }
 
 public class mainWindow extends JFrame{
+    private UserManagement userManagement;
+    private User currentUser;
     protected JTree fileTree;
     protected JPopupMenu popupMenu;
     protected JTextPane fileDisplay, commandLine;
@@ -43,11 +47,13 @@ public class mainWindow extends JFrame{
     protected TreePath pastePath;           //用于粘贴的地址
     protected int pastePrefix = 0;              //粘贴前缀，无，复制，剪切
 
-    public mainWindow(){
+    public mainWindow(UserManagement userManagement, User currentUser){
+        this.userManagement = userManagement;
+        this.currentUser = currentUser;
         this.setLayout(null);
         this.setSize(800,1000);
         this.setTitle("UNIX FileSystem");
-        fileSystem = new FileSystem();
+        fileSystem = new FileSystem(userManagement, currentUser);
         try {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsClassicLookAndFeel");
             SwingUtilities.updateComponentTreeUI(this);
@@ -388,7 +394,7 @@ public class mainWindow extends JFrame{
         return currentPath;
     }
 
-    public static void main(String[] args) {
-        new mainWindow();
-    }
+//    public static void main(String[] args) {
+//        new mainWindow();
+//    }
 }

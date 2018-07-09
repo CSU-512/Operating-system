@@ -89,10 +89,10 @@ public class EntranceForm extends JFrame {
                     UserManagement um = new UserManagement(new File("UserManagement.json"));
                     if(identifierIsUsername){
                         if(um.userLogin(usernameOrUID, password))
-                            new mainWindow();
+                            new mainWindow(um, um.findUser(usernameOrUID));
                     }else{
                         if(um.userLogin(Integer.valueOf(usernameOrUID), password))
-                            new mainWindow();
+                            new mainWindow(um, um.findUser(Integer.valueOf(usernameOrUID)));
                     }
 //                    entranceFrame.setVisible(false); // 通过身份验证后隐藏登录窗口
                     dispose();
