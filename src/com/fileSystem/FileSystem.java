@@ -435,6 +435,22 @@ public class FileSystem {//文件系统
         }
     }
 
+    public boolean checkPath(String filePath) {//检查文件路径是否存在
+        String[] pathArray = filePath.split("/");
+
+        int pathINodeNum = 0;//从根结点的INode编号开始向下寻找
+        int index;
+
+        for (int i = 1; i < pathArray.length; i++) {
+            index = getIndexFromINodeNum(pathINodeNum);
+            if (iNodes.get(index).getPathMap().containsKey(pathArray[i]))
+                pathINodeNum = iNodes.get(index).getPathMap().get(pathArray[i]);//定位当前路径所指示的INode的编号
+            else
+                return false;
+        }
+        return true;
+    }
+
     public void saveCurrentFileSystem() {
         try {
             JSONSaver.save(externalStorage, iNodes);
