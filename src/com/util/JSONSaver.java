@@ -75,7 +75,7 @@ public class JSONSaver {
 
         //构建初始INode，即根结点信息
         ArrayList<INode> iNodes = new ArrayList<>();
-        iNodes.add(new INode(0, -1, "~", 0, FileTypeEnum.INODE_IS_DIRECTORY, "user1", "group1",
+        iNodes.add(new INode(0, -1, "~", 0, FileTypeEnum.INODE_IS_DIRECTORY, 0, 0,
                             0, new Date(), new Date(), new Date(), 0,
                             new ArrayList<>(), new HashMap<>()));//加入一个根结点
 
