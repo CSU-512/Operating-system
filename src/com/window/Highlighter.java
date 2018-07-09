@@ -143,17 +143,6 @@ class Highlighter implements DocumentListener {
     }
 
 
-    /**
-
-     * 取得在文档中下标在pos处的字符.
-
-     *
-
-     * 如果pos为doc.getLength(), 返回的是一个文档的结束符, 不会抛出异常. 如果pos<0, 则会抛出异常.
-
-     * 所以pos的有效值是[0, doc.getLength()]
-
-     */
 
     public char getCharAt(Document doc, int pos) throws BadLocationException {
 
@@ -162,21 +151,6 @@ class Highlighter implements DocumentListener {
     }
 
 
-    /**
-
-     * 取得下标为pos时, 它所在的单词开始的下标. Â±wor^dÂ± (^表示pos, Â±表示开始或结束的下标)
-
-     *
-
-     * @param doc
-
-     * @param pos
-
-     * @return
-
-     * @throws BadLocationException
-
-     */
 
     public int indexOfWordStart(Document doc, int pos) throws BadLocationException {
 
@@ -190,21 +164,7 @@ class Highlighter implements DocumentListener {
     }
 
 
-    /**
 
-     * 取得下标为pos时, 它所在的单词结束的下标. Â±wor^dÂ± (^表示pos, Â±表示开始或结束的下标)
-
-     *
-
-     * @param doc
-
-     * @param pos
-
-     * @return
-
-     * @throws BadLocationException
-
-     */
 
     public int indexOfWordEnd(Document doc, int pos) throws BadLocationException {
 
@@ -218,21 +178,7 @@ class Highlighter implements DocumentListener {
     }
 
 
-    /**
 
-     * 如果一个字符是字母, 数字, 下划线, 则返回true.
-
-     *
-
-     * @param doc
-
-     * @param pos
-
-     * @return
-
-     * @throws BadLocationException
-
-     */
 
     public boolean isWordCharacter(Document doc, int pos) throws BadLocationException {
 

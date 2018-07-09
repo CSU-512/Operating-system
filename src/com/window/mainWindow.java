@@ -13,6 +13,10 @@ import javafx.util.Pair;
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Style;
+import javax.swing.text.StyledDocument;
 import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -211,10 +215,12 @@ public class mainWindow extends JFrame{
         JMenu jMenu = new JMenu("系统");
         JMenuItem jMenuItem = new JMenuItem("新建用户");
         JMenuItem checkUserItem = new JMenuItem("查看用户列表");
+        JMenuItem checkInternalAndExternal = new JMenuItem("查看磁盘和内存信息");
         this.setJMenuBar(jMenuBar);
         this.setResizable(false);
         jMenu.add(jMenuItem);
         jMenu.add(checkUserItem);
+        jMenu.add(checkInternalAndExternal);
         jMenuBar.add(jMenu);
 
         jMenuItem.addActionListener(new ActionListener() {
@@ -228,6 +234,13 @@ public class mainWindow extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
                 new UserListDialog(userManagement.getUserList());
+            }
+        });
+
+        checkInternalAndExternal.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //new ExternalAndInternalStorageStatusDialog()
             }
         });
     }
@@ -580,7 +593,12 @@ public class mainWindow extends JFrame{
                         case "write":{
                             //write实例： write ~/abc/acc -m content
                             command = command.substring(firstWord.length());
-                            String path = command.substring(0,command.indexOf("-m"));
+                            int indexOfM = command.indexOf("-m");
+                            if(indexOfM == -1){
+                                commandLine.replaceSelection("write示例：write path/ -m content\n");
+                                break;
+                            }
+                            String path = command.substring(0,indexOfM);
                             //获取要写文件的绝对路径
                             path = path.trim();
                             if(!fileSystem.checkPath(path)){
@@ -591,7 +609,7 @@ public class mainWindow extends JFrame{
                             String currentPath = path.substring(0,path.lastIndexOf('/'));
                             String filename = path.substring(path.lastIndexOf('/')+1);
                             System.out.println("path:"+path+" cur:"+currentPath+" file:"+filename);
-                            String content = command.substring(command.indexOf("-m")+2);
+                            String content = command.substring(indexOfM+2);
                             content = content.trim();
                             INode iNode = fileSystem.getINodeInfo(path);
                             if(!FilePrivilege.isOKToDo('w', iNode, currentUser)) {
@@ -615,6 +633,7 @@ public class mainWindow extends JFrame{
 
                         }break;
                         case "ls":{
+                            //文件夹后面加斜杠
                             List<Pair<String, FileTypeEnum>> nodelist = fileSystem.showDirectory(commandPath);
                             for(Pair<String, FileTypeEnum> node : nodelist){
                                 switch (node.getValue()){
@@ -652,6 +671,7 @@ public class mainWindow extends JFrame{
             }
         });
     }
+
     //处理路径（转换为底层需要的）
     public String handlePath(String path){
         String newPath;
