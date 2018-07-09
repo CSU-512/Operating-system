@@ -18,12 +18,14 @@ public class EntranceForm extends JFrame {
     private JPasswordField textField2;
     private JButton 确定Button;
     private JButton button2;
+    private String text1OldValue;
 
     public static void main(String[] args) {
         new EntranceForm();
     }
 
     public EntranceForm() {
+        text1OldValue = "Input UID or USER NAME to login";
         setTitle("Login");
         setContentPane(panel1);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -41,14 +43,19 @@ public class EntranceForm extends JFrame {
             @Override
             public void keyTyped(KeyEvent e) {
                 super.keyTyped(e);
+//                if (textField1.getText().equals("Input UID or USER NAME to login")) {
+//                    textField1.setText("");
+//                    textField1.setForeground(Color.BLACK);
+//                } else if (textField1.getText().length() == 0) {
+//                    textField1.setText("Input UID or USER NAME to login");
+//                    textField1.setForeground(Color.GRAY);
+//                    textField1.setCaretPosition(0);
+//                } else {
+//                    textField1.setForeground(Color.BLACK);
+//                }
+                System.out.println("typed");
                 if (textField1.getText().equals("Input UID or USER NAME to login")) {
                     textField1.setText("");
-                    textField1.setForeground(Color.BLACK);
-                } else if (textField1.getText().length() == 0) {
-                    textField1.setText("Input UID or USER NAME to login");
-                    textField1.setForeground(Color.GRAY);
-                    textField1.setCaretPosition(0);
-                } else {
                     textField1.setForeground(Color.BLACK);
                 }
             }
@@ -56,9 +63,42 @@ public class EntranceForm extends JFrame {
             @Override
             public void keyReleased(KeyEvent e) {
                 super.keyReleased(e);
-                if (textField1.getText().equals("Input UID or USER NAME to login")) {
+//                if (textField1.getText().equals("Input UID or USER NAME to login")) {
+//                    textField1.setCaretPosition(0);
+//                }
+                if ((e.getKeyCode() < KeyEvent.VK_0 || e.getKeyCode() > KeyEvent.VK_Z) &&
+                        textField1.getText().equals("Input UID or USER NAME to login")) {
+                    textField1.setText("Input UID or USER NAME to login");
+                    textField1.setForeground(Color.GRAY);
                     textField1.setCaretPosition(0);
                 }
+                if(textField1.getForeground()==Color.GRAY && "Input UID or USER NAME to login".indexOf(textField1.getText()) != -1){
+                    textField1.setText("Input UID or USER NAME to login");
+                    textField1.setForeground(Color.GRAY);
+                    textField1.setCaretPosition(0);
+                }
+                if (textField1.getText().length() == 0) {
+                    textField1.setText("Input UID or USER NAME to login");
+                    textField1.setForeground(Color.GRAY);
+                    textField1.setCaretPosition(0);
+                }
+                System.out.println((e.getKeyCode() < KeyEvent.VK_0 || e.getKeyCode() > KeyEvent.VK_Z));
+//                if ((e.getKeyCode() != KeyEvent.VK_ESCAPE && e.getKeyCode() != KeyEvent.VK_ENTER &&
+//                        e.getKeyCode() != KeyEvent.VK_BACK_SPACE)) {
+//                    if (textField1.getText().equals("Input UID or USER NAME to login") &&
+//                            textField1.getText().equals(text1OldValue)) {
+//                        textField1.setCaretPosition(0);
+//                    } else if (textField1.getText().equals("Input UID or USER NAME to login")) {
+//                        textField1.setText("");
+//                        textField1.setForeground(Color.BLACK);
+//                    } else if (textField1.getText().length() == 0 || e.getKeyCode() == KeyEvent.VK_DELETE) {
+//                        textField1.setText("Input UID or USER NAME to login");
+//                        textField1.setForeground(Color.GRAY);
+//                        textField1.setCaretPosition(0);
+//                    } else {
+//                        textField1.setForeground(Color.BLACK);
+//                    }
+//                }
             }
         });
         textField1.addMouseListener(new MouseAdapter() {
@@ -75,27 +115,31 @@ public class EntranceForm extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 try {
                     String usernameOrUID = textField1.getText().trim();
-                    String password = new String(textField2.getPassword());
+                    if (usernameOrUID.length() > 0 && !usernameOrUID.equals("Input UID or USER NAME to login")) {
+                        String password = new String(textField2.getPassword());
 
-                    // 正则表达式匹配确认是否有非数字字符
-                    String pattern = "[\\D]";
-                    Pattern r = Pattern.compile(pattern);
-                    Matcher m = r.matcher(usernameOrUID);
-                    int count = 0;
-                    while(m.find()) count++;
-                    boolean identifierIsUsername = count > 0;   // 若存在非数字字符，则认为输入的为用户名，否则认为是UID
+                        // 正则表达式匹配确认是否有非数字字符
+                        String pattern = "[\\D]";
+                        Pattern r = Pattern.compile(pattern);
+                        Matcher m = r.matcher(usernameOrUID);
+                        int count = 0;
+                        while (m.find()) count++;
+                        boolean identifierIsUsername = count > 0;   // 若存在非数字字符，则认为输入的为用户名，否则认为是UID
 
-                    // 构造UserManagement实例，进行用户身份验证
-                    UserManagement um = new UserManagement(new File("UserManagement.json"));
-                    if(identifierIsUsername){
-                        if(um.userLogin(usernameOrUID, password))
-                            new mainWindow(um, um.findUser(usernameOrUID));
-                    }else{
-                        if(um.userLogin(Integer.valueOf(usernameOrUID), password))
-                            new mainWindow(um, um.findUser(Integer.valueOf(usernameOrUID)));
-                    }
+                        // 构造UserManagement实例，进行用户身份验证
+                        UserManagement um = new UserManagement(new File("UserManagement.json"));
+                        if (identifierIsUsername) {
+                            if (um.userLogin(usernameOrUID, password))
+                                new mainWindow(um, um.findUser(usernameOrUID));
+                        } else {
+                            if (um.userLogin(Integer.valueOf(usernameOrUID), password))
+                                new mainWindow(um, um.findUser(Integer.valueOf(usernameOrUID)));
+                        }
 //                    entranceFrame.setVisible(false); // 通过身份验证后隐藏登录窗口
-                    dispose();
+                        dispose();
+                    } else {
+                        JOptionPane.showMessageDialog(null, "用户名不能为空");
+                    }
 
                 } catch (IOException e1) {
                     e1.printStackTrace();
