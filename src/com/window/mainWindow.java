@@ -43,6 +43,7 @@ public class mainWindow extends JFrame{
     public static boolean DELETING = false;
     protected TreePath pastePath;           //用于粘贴的地址
     protected int pastePrefix = 0;              //粘贴前缀，无，复制，剪切
+    private String commandPath = "~";
 
     public mainWindow(UserManagement userManagement, User currentUser){
         this.userManagement = userManagement;
@@ -164,17 +165,11 @@ public class mainWindow extends JFrame{
                 fileDisplay.setText("");
                 TreePath treePath = fileTree.getSelectionPath();
                 FileNode selectedNode = (FileNode) fileTree.getLastSelectedPathComponent();
-//                if(selectedNode != null && !selectedNode.equals(((DefaultTreeModel) fileTree.getModel()).getRoot()) && selectedNode.isLeaf())  {     //删除时触发两次会报错
-//                    String currentPath = handleFilepath(treePath);
-//                    String content = fileSystem.readFile(currentPath,selectedNode.toString());
-//                    fileDisplay.setText(content);
-//                }
                 if(!DELETING && (selectedNode != null &&!selectedNode.isLeaf())){
                     String currentPath = handlePath(treePath.toString());
                     List<Pair<String, FileTypeEnum>> nodeList = fileSystem.showDirectory(currentPath);
                     System.out.println(selectedNode.toString());
                     selectedNode.removeAllChildren();
-//                    fileTree.updateUI();
                     System.out.println("能不能");
                     DefaultTreeModel defaultTreeModel1 = (DefaultTreeModel) fileTree.getModel();
                     if(nodeList.size() != selectedNode.getChildCount()){
@@ -284,6 +279,26 @@ public class mainWindow extends JFrame{
         this.add(openButton);
         this.add(closeButton);
     }
+    //新建文件
+    public void makeNewFile(){
+        String newName = JOptionPane.showInputDialog("输入文件名：");
+        if(newName == null||newName.equals("")){
+            return;
+        }
+        FileNode newNode = new FileNode(newName);
+        TreePath treePath = fileTree.getSelectionPath();
+        newNode.setType(1);
+        DefaultTreeModel defaultTreeModel = (DefaultTreeModel) fileTree.getModel();
+        String currentPath = handlePath(treePath.toString());
+        fileSystem.newFile(currentPath,newName);
+        fileSystem.writeFile(currentPath,newName,"");
+        FileNode selectedNode = (FileNode) fileTree.getLastSelectedPathComponent();
+        defaultTreeModel.insertNodeInto(newNode,selectedNode,selectedNode.getChildCount());
+        fileSystem.saveCurrentFileSystem();
+        System.out.println("expand"+treePath.toString());
+        fileTree.expandPath(treePath);   //添加文件后扩展开文件夹
+    }
+
     //右键弹窗
     public void popMenu(){
         JMenuItem addFile, addDirectory, deleteItem, copyItem, cutItem, pasteItem,checkItem;
@@ -301,7 +316,7 @@ public class mainWindow extends JFrame{
         addFile.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //FileNode selectedNode = (FileNode) fileTree.getLastSelectedPathComponent();
+                //makeNewFile();
                 String newName = JOptionPane.showInputDialog("输入文件名：");
                 if(newName == null||newName.equals("")){
                     return;
@@ -318,7 +333,6 @@ public class mainWindow extends JFrame{
                 fileSystem.saveCurrentFileSystem();
                 System.out.println("expand"+treePath.toString());
                 fileTree.expandPath(treePath);   //添加文件后扩展开文件夹
-
             }
         });
 
@@ -457,25 +471,58 @@ public class mainWindow extends JFrame{
         commandLine.getDocument().addDocumentListener(new Highlighter(commandLine));
         commandLine.addKeyListener(new KeyAdapter() {
             @Override
-            public void keyPressed(KeyEvent e){
-//                if(e.getKeyCode() == KeyEvent.VK_ENTER){
-//                    String line[] = commandLine.getText().split("\n");
-//                    String command = line[line.length - 1];
-//                    System.out.println(command);
-//                    if(command.substring(2).equals("clear")){
-//                        commandLine.setText("$ ");
-//                    }
-//                }
-            }
-            @Override
             public void keyReleased(KeyEvent e){
                 if(e.getKeyCode() == KeyEvent.VK_ENTER){
                     String line[] = commandLine.getText().split("\n");
                     String command = line[line.length - 1];
                     System.out.println(command);
-                    if(command.substring(2).equals("clear")){
-                        commandLine.setText("");
+                    command = command.substring(2);
+                    String firstWord = command.substring(0,command.indexOf(' '));
+                    System.out.println(firstWord);
+                    switch (firstWord){
+                        case "touch":{
+                            String currentPath = commandPath;
+                            command = command.replace("touch","");
+                            String newName = command.trim();
+                            System.out.println("path+"+currentPath+"name+"+newName);
+                            fileSystem.newFile(currentPath,newName);
+                            fileSystem.writeFile(currentPath,newName,"");
+                            fileSystem.saveCurrentFileSystem();
+                            fileTree.updateUI();
+                        }break;
+                        case "mkdir":{
+
+                        }break;
+                        case "cat":{
+
+                        }break;
+                        case "write":{
+
+                        }break;
+                        case "cp":{
+
+                        }break;
+                        case "mv":{
+
+                        }break;
+                        case "rm":{
+
+                        }break;
+                        case "rmdir":{
+
+                        }break;
+                        case "ls":{
+
+                        }break;
+                        case "clear":{
+
+                        }break;
+                        default:{
+
+                        }break;
                     }
+
+                    //换行添加“$”
                     commandLine.setCaretPosition(commandLine.getDocument().getLength());
                     commandLine.replaceSelection("$ ");
                 }
