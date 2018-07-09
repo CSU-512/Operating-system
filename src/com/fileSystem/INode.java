@@ -1,5 +1,9 @@
 package com.fileSystem;
 
+import com.exception.ExceptionEnum;
+import com.exception.OSException;
+import com.userManagement.User;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -101,7 +105,15 @@ public class INode implements Serializable {
         return privilege;
     }
 
-    public void setPrivilege(int privilege) {
+    /**
+     *
+     * @param performer 执行者
+     * @param privilege 欲设置的权限
+     * @throws OSException  如果执行者最大权限小于预设值的权限，将抛出异常10022
+     */
+    public void setPrivilege(User performer, int privilege) throws OSException {
+        if(performer.getUserType().getUserMaximumFilePrivilege() < privilege)
+            throw new OSException(ExceptionEnum.OS_WEAK_ROLE_EXCEPTION);
         this.privilege = privilege;
     }
 
