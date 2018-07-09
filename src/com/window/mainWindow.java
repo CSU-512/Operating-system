@@ -240,7 +240,12 @@ public class mainWindow extends JFrame{
         checkInternalAndExternal.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //new ExternalAndInternalStorageStatusDialog()
+                System.out.println("hear");
+                int esSize = fileSystem.getStorageInfo('E').getKey();
+                int esInUse = fileSystem.getStorageInfo('E').getValue();
+                int isSize = fileSystem.getStorageInfo('I').getKey();
+                int isInUse = fileSystem.getStorageInfo('I').getValue();
+                new ExternalAndInternalStorageStatusDialog(esSize, esInUse,isSize,isInUse);
             }
         });
     }
