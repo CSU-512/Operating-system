@@ -157,9 +157,10 @@ public class FileSystem {//文件系统
             try {
                 newINode.setUserID(currentUser.getUID());
                 newINode.setGroupID(currentUser.getGID());
-                newINode.setPrivilege(currentUser, 457);//初始权限111001001
+                newINode.setPrivilege(currentUser, FilePrivilege.stringToPrivilege("rwv--v--v"));//初始权限111001001
             } catch (OSException e) {
                 e.printExceptionMessage();
+                return false;
             }
             //初始化各个时间
             newINode.setCtime(new Date());
@@ -196,9 +197,10 @@ public class FileSystem {//文件系统
             try {
                 newINode.setUserID(currentUser.getUID());
                 newINode.setGroupID(currentUser.getGID());
-                newINode.setPrivilege(currentUser, 457);//初始权限111001001
+                newINode.setPrivilege(currentUser, FilePrivilege.stringToPrivilege("rwv--v--v"));//初始权限111001001
             } catch (OSException e) {
                 e.printExceptionMessage();
+                return false;
             }
             //初始化各个时间
             newINode.setCtime(new Date());
@@ -370,11 +372,18 @@ public class FileSystem {//文件系统
         int pathIndex = getIndexFromINodeNum(pathINodeNum);
 
         List<Pair<String, FileTypeEnum>> directoryList = new ArrayList<>();
+
+        if (!FilePrivilege.isOKToDo('v', iNodes.get(pathIndex), currentUser))//如果当前路径用户都不可见则直接返回空列表
+            return directoryList;
+
         if (iNodes.get(pathIndex).getFileType() == FileTypeEnum.INODE_IS_DIRECTORY) {//如果当前路径指示的是目录，则返回其内部文件列表
-            int childINodeNum;
+            int childINodeNum, childIndex;
             for (String key : iNodes.get(pathIndex).getPathMap().keySet()) {
                 childINodeNum = iNodes.get(pathIndex).getPathMap().get(key);
-                directoryList.add(new Pair<>(key, iNodes.get(getIndexFromINodeNum(childINodeNum)).getFileType()));
+                childIndex = getIndexFromINodeNum(childINodeNum);
+                //只有对用户可见的文件才会加入列表
+                if (FilePrivilege.isOKToDo('v', iNodes.get(childIndex), currentUser))
+                    directoryList.add(new Pair<>(key, iNodes.get(childIndex).getFileType()));
             }
         }
         else //如果当前路径指示的是文件，则返回其自身的文件名和类型
@@ -385,6 +394,16 @@ public class FileSystem {//文件系统
     public INode getINodeInfo(String filePath) {//返回给定目录的inode信息，filePath表示文件绝对路径，如查看文件haha的INode信息则输入："~/dir/haha"
         int pathINodeNum = getINodeNumberOfPath(filePath);
         return iNodes.get(getIndexFromINodeNum(pathINodeNum));
+    }
+
+    public void changePrivilege(String filePath, String privilegeStr) {//为给定文件更改权限，filePath表示文件绝对路径；privilegeStr表示权限字符串，如："rwv--v--v"
+        try {
+            int pathINodeNum = getINodeNumberOfPath(filePath);
+            int privilegeNum = FilePrivilege.stringToPrivilege(privilegeStr);
+            iNodes.get(pathINodeNum).setPrivilege(currentUser, privilegeNum);
+        } catch (OSException e) {
+            e.printExceptionMessage();
+        }
     }
 
     public void saveCurrentFileSystem() {
