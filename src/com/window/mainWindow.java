@@ -38,6 +38,7 @@ public class mainWindow extends JFrame{
     protected JPopupMenu popupMenu;
     protected JTextPane fileDisplay, commandLine;
     protected FileSystem fileSystem;
+    protected FileTreeCellRenderer fileTreeCellRenderer;
     public static boolean DELETING = false;
 
     public mainWindow(){
@@ -114,10 +115,8 @@ public class mainWindow extends JFrame{
         }
         DefaultTreeModel defaultTreeModel = new DefaultTreeModel(root);
         fileTree = new JTree(defaultTreeModel);
-
-        DefaultTreeCellRenderer defaultTreeCellRenderer = new DefaultTreeCellRenderer();
-        FileTreeCellRenderer fileTreeCellRenderer =new FileTreeCellRenderer(fileSystem);
-        defaultTreeCellRenderer.setBackgroundSelectionColor(Color.GRAY);
+        //tree渲染器
+        fileTreeCellRenderer =new FileTreeCellRenderer(fileSystem);
         fileTreeCellRenderer.setBackgroundSelectionColor(Color.GRAY);
 
         fileTree.setCellRenderer(fileTreeCellRenderer);
@@ -130,7 +129,6 @@ public class mainWindow extends JFrame{
                     return;
                 }
                 fileTree.setSelectionPath(path);
-
                 if(e.getButton() == 3){     //右键
                     popupMenu.show(fileTree,e.getX(),e.getY());
                 }
@@ -265,8 +263,8 @@ public class mainWindow extends JFrame{
                 //文件
                 TreePath treePath = fileTree.getSelectionPath();
                 String currentPath = handleFilepath(treePath);
-                System.out.println("remove:"+currentPath+" name:"+selectedNode.toString());
                 fileSystem.remove(currentPath,selectedNode.toString());
+                fileTreeCellRenderer.deleteNode(treePath);
                 //defaultTreeModel.removeNodeFromParent(selectedNode);
                 fileSystem.saveCurrentFileSystem();
                 fileTree.updateUI();

@@ -31,7 +31,7 @@ public class EntranceForm extends JFrame {
         setVisible(true);
         GridBagLayout layout = new GridBagLayout();
         Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds(dimension.width / 2 - 350 / 2, dimension.height / 2 - 230 / 2, 300, 200);
+        setBounds(dimension.width / 2 - 300 / 2, dimension.height / 2 - 200 / 2, 300, 200);
         setResizable(false);
 
         textField1.setText("Input UID or USER NAME to login");
