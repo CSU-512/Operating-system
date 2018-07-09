@@ -130,4 +130,8 @@ public class UserManagement implements Serializable {
                 return u;
         return null;
     }
+
+    public ArrayList<User> getUserList() {
+        return userList;
+    }
 }
