@@ -42,8 +42,9 @@ public class mainWindow extends JFrame{
     protected JPopupMenu popupMenu;
     protected JTextPane fileDisplay, commandLine;
     protected FileSystem fileSystem;
-    protected FileTreeCellRenderer fileTreeCellRenderer;
     public static boolean DELETING = false;
+    protected TreePath pastePath;           //用于粘贴的地址
+    protected int pastePrefix = 0;              //粘贴前缀，无，复制，剪切
 
     public mainWindow(UserManagement userManagement, User currentUser){
         this.userManagement = userManagement;
@@ -99,6 +100,19 @@ public class mainWindow extends JFrame{
             }
         });
         this.setVisible(true);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true){
+                    fileTree.updateUI();
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
     }
 
     public void initFileTree(){
@@ -122,10 +136,9 @@ public class mainWindow extends JFrame{
         DefaultTreeModel defaultTreeModel = new DefaultTreeModel(root);
         fileTree = new JTree(defaultTreeModel);
         //tree渲染器
-        fileTreeCellRenderer =new FileTreeCellRenderer(fileSystem);
-        fileTreeCellRenderer.setBackgroundSelectionColor(Color.GRAY);
-
-        fileTree.setCellRenderer(fileTreeCellRenderer);
+        DefaultTreeCellRenderer defaultTreeCellRenderer = new DefaultTreeCellRenderer();
+        defaultTreeCellRenderer.setBackgroundSelectionColor(Color.GRAY);
+        fileTree.setCellRenderer(defaultTreeCellRenderer);
         fileTree.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -152,6 +165,24 @@ public class mainWindow extends JFrame{
                     String currentPath = handleFilepath(treePath);
                     String content = fileSystem.readFile(currentPath,selectedNode.toString());
                     fileDisplay.setText(content);
+                }
+                if(!DELETING && !selectedNode.isLeaf()){
+                    String currentPath = handlePath(treePath.toString());
+                    List<Pair<String, FileTypeEnum>> nodeList = fileSystem.showDirectory(currentPath);
+                    selectedNode.removeAllChildren();
+                    DefaultTreeModel defaultTreeModel1 = (DefaultTreeModel) fileTree.getModel();
+                    for(Pair<String, FileTypeEnum> node : nodeList){
+                        FileNode newNode = new FileNode(node.getKey());
+                        switch (node.getValue()){
+                            case INODE_IS_DIRECTORY: {
+                                newNode.setType(0);
+                            } break;
+                            case INODE_IS_REGULAR_FILE:{
+                                newNode.setType(1);
+                            } break;
+                        }
+                        defaultTreeModel.insertNodeInto(newNode,selectedNode,selectedNode.getChildCount());
+                    }
                 }
             }
         });
@@ -215,12 +246,16 @@ public class mainWindow extends JFrame{
     }
     //右键弹窗
     public void popMenu(){
-        JMenuItem addFile, addDirectory, deleteItem;
+        JMenuItem addFile, addDirectory, deleteItem, copyItem, cutItem, pasteItem;
 
         popupMenu = new JPopupMenu();
         addFile = new JMenuItem("新建文件");
         addDirectory = new JMenuItem("新建文件夹");
         deleteItem = new JMenuItem("删除");
+        copyItem = new JMenuItem("复制");
+        cutItem = new JMenuItem("剪切");
+        pasteItem = new JMenuItem("粘贴");
+
         //添加新文件
         addFile.addActionListener(new ActionListener() {
             @Override
@@ -230,14 +265,16 @@ public class mainWindow extends JFrame{
                 FileNode newNode = new FileNode(newName);
                 TreePath treePath = fileTree.getSelectionPath();
                 newNode.setType(1);
-
+                DefaultTreeModel defaultTreeModel = (DefaultTreeModel) fileTree.getModel();
                 String currentPath = handlePath(treePath.toString());
                 fileSystem.newFile(currentPath,newName);
                 fileSystem.writeFile(currentPath,newName,"");
-
+                FileNode selectedNode = (FileNode) fileTree.getLastSelectedPathComponent();
+                defaultTreeModel.insertNodeInto(newNode,selectedNode,selectedNode.getChildCount());
                 fileSystem.saveCurrentFileSystem();
-                fileTree.updateUI();
+                System.out.println("expand"+treePath.toString());
                 fileTree.expandPath(treePath);   //添加文件后扩展开文件夹
+
             }
         });
 
@@ -245,16 +282,16 @@ public class mainWindow extends JFrame{
         addDirectory.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //FileNode selectedNode = (FileNode) fileTree.getLastSelectedPathComponent();
                 String newName = JOptionPane.showInputDialog("输入文件夹名：");
                 FileNode newNode = new FileNode(newName);
                 TreePath treePath = fileTree.getSelectionPath();
                 newNode.setType(0);
+                FileNode selectedNode = (FileNode) fileTree.getLastSelectedPathComponent();
                 //添加新文件夹
                 fileSystem.newDirectory(handlePath(treePath.toString()),newName);
-
+                DefaultTreeModel defaultTreeModel = (DefaultTreeModel) fileTree.getModel();
+                defaultTreeModel.insertNodeInto(newNode,selectedNode,selectedNode.getChildCount());
                 fileSystem.saveCurrentFileSystem();
-                fileTree.updateUI();
                 fileTree.expandPath(treePath);   //添加文件夹后扩展开文件夹
             }
         });
@@ -270,16 +307,72 @@ public class mainWindow extends JFrame{
                 TreePath treePath = fileTree.getSelectionPath();
                 String currentPath = handleFilepath(treePath);
                 fileSystem.remove(currentPath,selectedNode.toString());
-                fileTreeCellRenderer.deleteNode(treePath);
-                //defaultTreeModel.removeNodeFromParent(selectedNode);
+                fileSystem.saveCurrentFileSystem();
+                defaultTreeModel.removeNodeFromParent(selectedNode);
+                fileDisplay.setText("");
+                DELETING = false;
+            }
+        });
+
+        //复制
+        copyItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mainWindow.this.pastePath = fileTree.getSelectionPath();
+                pastePrefix = 1;
+            }
+        });
+
+        //剪切
+        cutItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mainWindow.this.pastePath = fileTree.getSelectionPath();
+                pastePrefix = 2;
+            }
+        });
+
+        //粘贴
+        pasteItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                TreePath startPath = pastePath;  //起始地址
+                TreePath destPath = fileTree.getSelectionPath();    //目的地址
+                FileNode copyNode,destNode = (FileNode) destPath.getLastPathComponent();
+                String start,dest;
+                DefaultTreeModel defaultTreeModel = (DefaultTreeModel) fileTree.getModel();
+
+                switch (pastePrefix){
+                    case 0:{}break;
+                    case 1:{
+                        start = handleFilepath(startPath);
+                        dest = handlePath(destPath.toString());
+                        copyNode = (FileNode) startPath.getLastPathComponent();
+                        System.out.println("start:"+start+" dest:"+dest);
+                        fileSystem.copy(copyNode.toString(),start,dest);
+                        defaultTreeModel.insertNodeInto(copyNode,destNode,destNode.getChildCount());
+                    }break;
+                    case 2:{
+                        start = handleFilepath(startPath);
+                        dest = handlePath(destPath.toString());
+                        copyNode = (FileNode) startPath.getLastPathComponent();
+                        System.out.println("start:"+start+" dest:"+dest);
+                        fileSystem.move(copyNode.toString(),start,dest);
+                        defaultTreeModel.insertNodeInto(copyNode,destNode,destNode.getChildCount());
+                    }break;
+                }
+
+                pastePrefix = 0;
                 fileSystem.saveCurrentFileSystem();
                 fileTree.updateUI();
-                fileDisplay.setText("");
             }
         });
         popupMenu.add(addFile);
         popupMenu.add(addDirectory);
         popupMenu.add(deleteItem);
+        popupMenu.add(copyItem);
+        popupMenu.add(cutItem);
+        popupMenu.add(pasteItem);
     }
 
     public void initPane(){
@@ -302,6 +395,9 @@ public class mainWindow extends JFrame{
         String newPath;
         path = path.substring(1,path.length()-1);
         newPath = path.replaceAll(", ","/");
+        if(newPath.charAt(newPath.length()-1) == '/'){
+            newPath = newPath.substring(0,newPath.length()-1);
+        }
         return newPath;
     }
     //专门处理文件需要的路径
@@ -309,7 +405,9 @@ public class mainWindow extends JFrame{
         FileNode selectedNode = (FileNode) path.getLastPathComponent();
         String currentPath = handlePath(path.toString());
         currentPath = currentPath.substring(0,currentPath.length()-selectedNode.toString().length());
-        System.out.println("this:"+currentPath);
+        if(currentPath.charAt(currentPath.length()-1) == '/'){
+            currentPath = currentPath.substring(0,currentPath.length()-1);
+        }
         return currentPath;
     }
 
