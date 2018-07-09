@@ -1,6 +1,7 @@
 package com.fileSystem;
 
 
+import com.exception.OSException;
 import com.externalStorage.ExternalStorage;
 import com.internalStorage.InternalStorage;
 import com.userManagement.User;
@@ -152,6 +153,14 @@ public class FileSystem {//文件系统
             newINode.setFileName(fileName);
             newINode.setFileLength(0);//初始文件长度为0
             newINode.setFileType(FileTypeEnum.INODE_IS_REGULAR_FILE);
+            //设置文件所有者信息
+            try {
+                newINode.setUserID(currentUser.getUID());
+                newINode.setGroupID(currentUser.getGID());
+                newINode.setPrivilege(currentUser, 457);//初始权限111001001
+            } catch (OSException e) {
+                e.printExceptionMessage();
+            }
             //初始化各个时间
             newINode.setCtime(new Date());
             newINode.setMtime(new Date());
@@ -183,6 +192,14 @@ public class FileSystem {//文件系统
             newINode.setFileName(directoryName);
             newINode.setFileLength(0);
             newINode.setFileType(FileTypeEnum.INODE_IS_DIRECTORY);
+            //设置文件所有者信息
+            try {
+                newINode.setUserID(currentUser.getUID());
+                newINode.setGroupID(currentUser.getGID());
+                newINode.setPrivilege(currentUser, 457);//初始权限111001001
+            } catch (OSException e) {
+                e.printExceptionMessage();
+            }
             //初始化各个时间
             newINode.setCtime(new Date());
             newINode.setMtime(new Date());

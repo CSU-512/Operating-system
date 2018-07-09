@@ -1,5 +1,7 @@
 package com.fileSystem;
 
+import com.exception.ExceptionEnum;
+import com.exception.OSException;
 import com.userManagement.User;
 import com.userManagement.UserTypeEnum;
 
@@ -23,6 +25,21 @@ public class FilePrivilege {
             cmp >>= 1;
         }
         return privilegeString.toString();
+    }
+    public static int stringToPrivilege(String privilegeString) throws OSException {
+        String opr = "rwv";
+        if(privilegeString.length()<9)
+            throw new OSException(ExceptionEnum.OS_PRIVILEGE_STRING_SYNTAX_EXCEPTION);
+        for(int i = 0; i < 9; i++){
+            if(privilegeString.toLowerCase().charAt(i) != opr.charAt(i%3) && privilegeString.toLowerCase().charAt(i) != '-')
+                throw new OSException(ExceptionEnum.OS_PRIVILEGE_STRING_SYNTAX_EXCEPTION);
+        }
+        int privilege = 0;
+        for(int i = 0; i < 9; i++){
+            if(privilegeString.charAt(i) != '-')
+                privilege |= (1 << (8-i));
+        }
+        return privilege;
     }
 
     // 各个权限对应的比特
@@ -78,7 +95,9 @@ public class FilePrivilege {
         return false;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws OSException {
         System.out.println(privilegeToString(510));
+        System.out.println(stringToPrivilege(privilegeToString(457)));
+        System.out.println(stringToPrivilege("r-v-v--v"));
     }
 }
