@@ -23,6 +23,19 @@ public class FileSystem {//文件系统
     private ArrayList<INode> iNodes;//iNode列表
     private Set<Integer> allocatedINodeNum;//已分配的inode编号集合
 
+    public FileSystem() {
+        try {
+            externalStorage = JSONLoader.getExternalStorageFromJson();
+            internalStorage = new InternalStorage(100);
+            iNodes = JSONLoader.getINodeArray();
+            allocatedINodeNum = new HashSet<>();
+            for (INode iNode : iNodes)
+                allocatedINodeNum.add(iNode.getiNumber());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public FileSystem(UserManagement userManagement, User currentUser) {
         this.userManagement = userManagement;
         this.currentUser = currentUser;
@@ -315,7 +328,7 @@ public class FileSystem {//文件系统
     }
 
     public static void main(String[] args) throws IOException {
-        //FileSystem fileSystem = new FileSystem();
+        FileSystem fileSystem = new FileSystem();
         String currentPath = "~";
 //        if (fileSystem.newFile(currentPath, "haha"))
 //            fileSystem.writeFile(currentPath, "haha", "this is haha's content");
@@ -340,11 +353,11 @@ public class FileSystem {//文件系统
         //fileSystem.move("heihei",currentPath,currentPath+"/directory");
         //fileSystem.remove(currentPath, "directory");
         //System.out.println(fileSystem.allocatedINodeNum);
-//        fileSystem.remove("~","directory");
+//        fileSystem.remove("~/","aaaa");
 //        for (INode i : fileSystem.iNodes) {
-//            System.out.println(i.getiNumber() + ": " + i.getFileName() + "  ---  " +  i.getFileLength() + "Byte");
+//            System.out.println(i.getiNumber() + ": " + i.getFileName() + "  ---  " +  i.getFileType());
 //        }
 //        fileSystem.saveCurrentFileSystem();
-        System.out.println(new Date());
+        System.out.println("~".split("/").length);
     }
 }
