@@ -19,7 +19,7 @@ public class INode implements Serializable {
     private String userID;	// 文件拥有者ID,NO
     private String groupID;	// 文件组ID,NO
     private int privilege;	// 文件权限,NO
-    private Date ctime, mtime, atime; 	// inode上次变动时间、文件内容上次变动时间、文件上次打开时间
+    private Date ctime, mtime, atime; 	// inode上次变动时间、文件内容上次变动时间、文件上次打开时间,OK
     private int linkCount;	// 文件链接数,NO
     private ArrayList<Integer> dataBlockList; 	// 文件数据块列表，供文件使用,OK
     private Map<String, Integer> pathMap;   //从子inode编号到其路径名的映射，供目录使用,OK
