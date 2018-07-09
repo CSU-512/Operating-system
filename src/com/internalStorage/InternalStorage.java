@@ -38,7 +38,13 @@ public class InternalStorage {
         this.availableISTable.add(new Pair<>(0, size));
     }
 
-    // 分配内存空间，首次适应算法
+    /**
+     *
+     * @param size 所需空间的大小
+     * @return 分配内存块的首地址
+     * @throws InternalStorageOutOfStorageException 空间不足时抛出内存空间不足异常
+     * @apiNote 分配内存空间，首次适应算法
+     */
     public int isalloc(int size) throws InternalStorageOutOfStorageException {
 
         // 每次释放主存空间后，系统确保进行紧凑操作，故只需判断总的主存剩余容量是否满足需求即可
