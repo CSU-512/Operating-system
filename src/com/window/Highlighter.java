@@ -153,16 +153,6 @@ class Highlighter implements DocumentListener {
 
      * 所以pos的有效值是[0, doc.getLength()]
 
-     *
-
-     * @param doc
-
-     * @param pos
-
-     * @return
-
-     * @throws BadLocationException
-
      */
 
     public char getCharAt(Document doc, int pos) throws BadLocationException {
