@@ -61,8 +61,6 @@ public class FileSystem {//文件系统
 
         for (int i = 1; i < pathArray.length; i++) {
             index = getIndexFromINodeNum(pathINodeNum);
-//            System.out.println(index);
-//            System.out.println(iNodes.get(index).getPathMap());
             pathINodeNum = iNodes.get(index).getPathMap().get(pathArray[i]);//定位当前路径所指示的INode的编号
         }
         return pathINodeNum;
@@ -102,7 +100,11 @@ public class FileSystem {//文件系统
             newINode.setFileName(fileName);
             newINode.setFileLength(0);//初始文件长度为0
             newINode.setFileType(FileTypeEnum.INODE_IS_REGULAR_FILE);
-            newINode.setDataBlockList(new ArrayList<>());
+            //初始化各个时间
+            newINode.setCtime(new Date());
+            newINode.setMtime(new Date());
+            newINode.setAtime(new Date());
+            newINode.setDataBlockList(new ArrayList<>());//初始化数据块列表
             iNodes.add(newINode);
 
             //为新文件在当前目录下注册
@@ -129,7 +131,11 @@ public class FileSystem {//文件系统
             newINode.setFileName(directoryName);
             newINode.setFileLength(0);
             newINode.setFileType(FileTypeEnum.INODE_IS_DIRECTORY);
-            newINode.setPathMap(new HashMap<>());
+            //初始化各个时间
+            newINode.setCtime(new Date());
+            newINode.setMtime(new Date());
+            newINode.setAtime(new Date());
+            newINode.setPathMap(new HashMap<>());//初始化子结点映射
             iNodes.add(newINode);
 
             //为新文件在当前目录下注册
@@ -251,17 +257,18 @@ public class FileSystem {//文件系统
         if (iNodes.get(currentFileIndex).getFileType() == FileTypeEnum.INODE_IS_DIRECTORY) {
             String directoryName = "/" + sourceFileName;
 
-            //防止ConcurrentModificationException，用一个临时map存储待删文件的pathMap
+            //执行递归时，里层递归会利用***标识的语句修改当前对象的pathMap，即边遍历集合，边修改集合，会导致ConcurrentModificationException
+            //为了防止ConcurrentModificationException，用一个临时map存储待删文件的pathMap
             Map<String, Integer> tempMap = new HashMap<>(iNodes.get(currentFileIndex).getPathMap());
 
+            //递归删除
             for (String key : tempMap.keySet())
                 remove(currentPath + directoryName, key);
         }
         else //否则说明sourceFile是普通文件，可以直接回收空间
             externalStorage.sfree(iNodes.get(currentFileIndex).getDataBlockList());
 
-
-        //删除父节点Map中的信息
+        //***删除父节点Map中的信息***
         iNodes.get(getIndexFromINodeNum(parentINodeNum)).getPathMap().remove(sourceFileName);
 
         //更新父结点的文件大小
@@ -304,27 +311,34 @@ public class FileSystem {//文件系统
     public static void main(String[] args) throws IOException {
         FileSystem fileSystem = new FileSystem();
         String currentPath = "~";
-        if (fileSystem.newFile(currentPath, "haha"))
-            fileSystem.writeFile(currentPath, "haha", "this is haha's content");
-
-        if (fileSystem.newFile(currentPath, "heihei"))
-            fileSystem.writeFile(currentPath, "heihei", "this is heihei's content");
-
-        if (fileSystem.newDirectory(currentPath, "directory"))
-            fileSystem.newFile(currentPath + "/directory", "haha in dir");
-
-        currentPath = currentPath + "/directory";
-        fileSystem.newFile(currentPath, "file1");
-        fileSystem.newDirectory(currentPath, "inDirectory");
-        currentPath = currentPath + "/inDirectory";
-        fileSystem.newFile(currentPath, "file2");
-
+//        if (fileSystem.newFile(currentPath, "haha"))
+//            fileSystem.writeFile(currentPath, "haha", "this is haha's content");
+//
+//        if (fileSystem.newFile(currentPath, "heihei"))
+//            fileSystem.writeFile(currentPath, "heihei", "this is heihei's content");
+//
+//        if (fileSystem.newDirectory(currentPath, "directory"))
+//            fileSystem.newFile(currentPath + "/directory", "haha in dir");
+//
+//        currentPath ="~/directory";
+//        fileSystem.newFile(currentPath, "file1");
+//        fileSystem.newDirectory(currentPath, "inDirectory");
+//        currentPath = "~/directory/inDirectory";
+//        fileSystem.newFile(currentPath, "file2");
+//        fileSystem.newDirectory(currentPath, "directory2");
+//        currentPath ="~/directory2";
+//        fileSystem.newFile(currentPath, "haha1");
+//        fileSystem.newFile(currentPath, "haha2");
+        //fileSystem.move("heihei",currentPath,currentPath+"/directory/inDirectory");
+        //fileSystem.copy("directory2",currentPath,currentPath+"/directory/inDirectory");
         //fileSystem.move("heihei",currentPath,currentPath+"/directory");
         //fileSystem.remove(currentPath, "directory");
-        System.out.println(fileSystem.allocatedINodeNum);
-        for (INode i : fileSystem.iNodes) {
-            System.out.println(i.getiNumber() + ": " + i.getFileName());
-        }
-        fileSystem.saveCurrentFileSystem();
+        //System.out.println(fileSystem.allocatedINodeNum);
+//        fileSystem.remove("~","directory");
+//        for (INode i : fileSystem.iNodes) {
+//            System.out.println(i.getiNumber() + ": " + i.getFileName() + "  ---  " +  i.getFileLength() + "Byte");
+//        }
+//        fileSystem.saveCurrentFileSystem();
+        System.out.println(new Date());
     }
 }

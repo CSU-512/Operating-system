@@ -7,18 +7,18 @@ import java.util.Map;
 
 public class INode implements Serializable {
     private static final long serialVersionUID = 1L;
-    private int iNumber;    //inode编号
-    private int parentINumber;   //父结点inode编号
-    private String fileName;    //文件名
-    private int fileLength;	// 文件字节数
-    private FileTypeEnum fileType;//文件类型
-    private String userID;	// 文件拥有者ID
-    private String groupID;	// 文件组ID
-    private int privilege;	// 文件权限
+    private int iNumber;    //inode编号,OK
+    private int parentINumber;   //父结点inode编号,OK
+    private String fileName;    //文件名,OK
+    private int fileLength;	// 文件字节数,OK
+    private FileTypeEnum fileType;//文件类型,OK（除了链接文件）
+    private String userID;	// 文件拥有者ID,NO
+    private String groupID;	// 文件组ID,NO
+    private int privilege;	// 文件权限,NO
     private Date ctime, mtime, atime; 	// inode上次变动时间、文件内容上次变动时间、文件上次打开时间
-    private int linkCount;	// 文件链接数
-    private ArrayList<Integer> dataBlockList; 	// 文件数据块列表
-    private Map<String, Integer> pathMap;   //从子inode编号到其路径名的映射
+    private int linkCount;	// 文件链接数,NO
+    private ArrayList<Integer> dataBlockList; 	// 文件数据块列表，供文件使用,OK
+    private Map<String, Integer> pathMap;   //从子inode编号到其路径名的映射，供目录使用,OK
 
     public INode() {
 
