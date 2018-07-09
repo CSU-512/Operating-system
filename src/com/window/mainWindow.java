@@ -15,7 +15,9 @@ import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 class FileNode extends DefaultMutableTreeNode{
     private int type;      //文件类型，目录or文件，0为目录，1为文件
@@ -38,26 +40,28 @@ class FileNode extends DefaultMutableTreeNode{
 public class mainWindow extends JFrame{
     private UserManagement userManagement;
     private User currentUser;
-    protected JTree fileTree;
-    protected JPopupMenu popupMenu;
-    protected JTextPane fileDisplay, commandLine;
-    protected FileSystem fileSystem;
-    public static boolean DELETING = false;
-    protected TreePath pastePath;           //用于粘贴的地址
-    protected int pastePrefix = 0;              //粘贴前缀，无，复制，剪切
+    private JTree fileTree;
+    private JPopupMenu popupMenu;
+    private JTextPane fileDisplay, commandLine;
+    private FileSystem fileSystem;
+    private static boolean DELETING = false;
+    private TreePath pastePath;           //用于粘贴的地址
+    private int pastePrefix = 0;              //粘贴前缀，无，复制，剪切
     private String commandPath = "~";
+    private Set<String> keywords;
 
     public mainWindow(UserManagement userManagement, User currentUser){
         this.userManagement = userManagement;
         this.currentUser = currentUser;
         this.setLayout(null);
         this.setSize(1000,1000);
-        this.setTitle("UNIX FileSystem");
+        this.setTitle("UNIX FileSystem  |  username: " + currentUser.getUserName() + "    UID: " + currentUser.getUID());
         this.setLocationRelativeTo(null);
         fileSystem = new FileSystem(userManagement, currentUser);
         try {
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsClassicLookAndFeel");
-            SwingUtilities.updateComponentTreeUI(this);
+            org.jb2011.lnf.beautyeye.BeautyEyeLNFHelper.launchBeautyEyeLNF();
+            //UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+            //SwingUtilities.updateComponentTreeUI(this);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -79,6 +83,7 @@ public class mainWindow extends JFrame{
         initPane();
         initMenuBar();
         JScrollPane jScrollPane = new JScrollPane(fileTree);
+        initDict();
 
         jScrollPane.setBounds(10,50,400,450);
         menuLabel.setBounds(10,10,200,50);
@@ -499,10 +504,25 @@ public class mainWindow extends JFrame{
         popupMenu.add(changePrivilegeItem);
     }
 
+    public void initDict(){
+        keywords = new HashSet<>();
+        keywords.add("touch");
+        keywords.add("mkdir");
+        keywords.add("cat");
+        keywords.add("write");
+        keywords.add("cp");
+        keywords.add("mv");
+        keywords.add("rm");
+        keywords.add("rmdir");
+        keywords.add("ls");
+        keywords.add("clear");
+        keywords.add("cd");
+    }
+
     public void initPane(){
         fileDisplay.setFont(new Font("Courier",Font.BOLD,20));
         commandLine.setFont(new Font("Courier",Font.BOLD,20));
-        commandLine.setText("$ ");
+        commandLine.setText(currentUser.getUserName()+"     "+commandPath+"\n$ ");
         commandLine.getDocument().addDocumentListener(new Highlighter(commandLine));
         commandLine.addKeyListener(new KeyAdapter() {
             @Override
@@ -512,34 +532,30 @@ public class mainWindow extends JFrame{
                     String command = line[line.length - 1];
                     System.out.println(command);
                     command = command.substring(2);
-                    int index = command.indexOf(' ');
-                    String firstWord;
-                    if(index != -1){
-
-                    }else {
-                        //firstWord = command.s
+                    String firstWord = "";
+                    for(String str : keywords){
+                        if(command.startsWith(str)){
+                            firstWord = str;
+                            break;
+                        }
                     }
-                    firstWord = command.substring(0,command.indexOf(' '));
                     //System.out.println(firstWord);
                     switch (firstWord){
                         case "touch":{
                             String currentPath = commandPath;
                             command = command.replace("touch","");
                             String newName = command.trim();
-//                            String[] path = commandPath.split("/");
-//                            TreePath treePath = new TreePath(new String[]{"~"});
-//                            System.out.println(treePath.toString());
-                            //FileNode newNode = new FileNode(newName);
                             fileSystem.newFile(currentPath,newName);
                             fileSystem.writeFile(currentPath,newName,"");
                             fileSystem.saveCurrentFileSystem();
-
-                            TreePath ss = fileTree.getSelectionPath();
-                            //System.out.println(treePath.equals(ss));
                             fileTree.updateUI();
                         }break;
                         case "mkdir":{
-
+                            command = command.replace("mkdir","");
+                            String newName = command.trim();
+                            fileSystem.newDirectory(commandPath,newName);
+                            fileSystem.saveCurrentFileSystem();
+                            fileTree.updateUI();
                         }break;
                         case "cat":{
 
@@ -563,19 +579,22 @@ public class mainWindow extends JFrame{
 
                         }break;
                         case "clear":{
-                            commandLine.setText("& ");
+                            commandLine.setText("");
                         }break;
                         case "cd":{
-                            //TreePath treePath = new TreePath()
-                        }
+                            command = command.replace("cd","");
+                            command = command.trim();
+                            commandPath = command;
+                            System.out.println(commandPath);
+                        }break;
                         default:{
-
+                            commandLine.replaceSelection("\"" + command + "\" 不是一个正确的命令\n");
                         }break;
                     }
 
                     //换行添加“$”
                     commandLine.setCaretPosition(commandLine.getDocument().getLength());
-                    commandLine.replaceSelection("$ ");
+                    commandLine.replaceSelection(currentUser.getUserName()+"     "+commandPath+"\n$ ");
                 }
             }
         });

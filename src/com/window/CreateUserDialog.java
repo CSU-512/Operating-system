@@ -58,7 +58,7 @@ public class CreateUserDialog extends JFrame {
                         FileOutputStream fos = new FileOutputStream(new File("UserManagement.json"));
                         fos.write(jo.toString().getBytes());
                         fos.close();
-                        
+
                         dispose();
                     } catch (OSException e1) {
                         e1.printStackTrace();
