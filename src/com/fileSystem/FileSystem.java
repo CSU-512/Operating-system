@@ -73,7 +73,7 @@ public class FileSystem {//文件系统
     }
 
     //更新所有父结点的文件大小，size为编号为baseINodeNum的inode的文件长度变化量（变化后-变化前），可正可负
-    private void updateParentINodeInfo(int baseINodeNum, int size) {
+    private void updateParentINodeFileLength(int baseINodeNum, int size) {
         int parentINodeNum = iNodes.get(getIndexFromINodeNum(baseINodeNum)).getParentINumber();
         int originSize, index;
 
@@ -83,6 +83,39 @@ public class FileSystem {//文件系统
             iNodes.get(index).setFileLength(originSize + size);
             baseINodeNum = parentINodeNum;
             parentINodeNum = iNodes.get(getIndexFromINodeNum(baseINodeNum)).getParentINumber();
+        }
+    }
+
+    //更新所有父结点的time信息，type可取'C','M','A'
+    private void updateParentINodeTime(int baseINodeNum, char type) {
+        int parentINodeNum = iNodes.get(getIndexFromINodeNum(baseINodeNum)).getParentINumber();
+        int index;
+
+        if (type == 'C') {
+            while (parentINodeNum != -1) {
+                index = getIndexFromINodeNum(parentINodeNum);
+                iNodes.get(index).setCtime(new Date());
+                baseINodeNum = parentINodeNum;
+                parentINodeNum = iNodes.get(getIndexFromINodeNum(baseINodeNum)).getParentINumber();
+            }
+        }
+        if (type == 'M') {
+            while (parentINodeNum != -1) {
+                index = getIndexFromINodeNum(parentINodeNum);
+                iNodes.get(index).setMtime(new Date());
+                iNodes.get(index).setCtime(new Date());//inode中的MTime项改变，则CTime改变
+                baseINodeNum = parentINodeNum;
+                parentINodeNum = iNodes.get(getIndexFromINodeNum(baseINodeNum)).getParentINumber();
+            }
+        }
+        if (type == 'A') {
+            while (parentINodeNum != -1) {
+                index = getIndexFromINodeNum(parentINodeNum);
+                iNodes.get(index).setAtime(new Date());
+                iNodes.get(index).setCtime(new Date());//inode中的ATime项改变，则CTime改变
+                baseINodeNum = parentINodeNum;
+                parentINodeNum = iNodes.get(getIndexFromINodeNum(baseINodeNum)).getParentINumber();
+            }
         }
     }
 
@@ -152,12 +185,17 @@ public class FileSystem {//文件系统
 
     public String readFile(String currentPath, String fileName) {//读文件，返回值为以字符串表示的文件内容
         try {
-            //先找到代表当前文件的INode
+            //先找到代表当前文件的INode和其在iNodes中的索引位置
             int currentFileINodeNum = getINodeNumberOfPath(currentPath);//先确定本文件所在目录的INode
             currentFileINodeNum = iNodes.get(getIndexFromINodeNum(currentFileINodeNum)).getPathMap().get(fileName);
+            int currentFileIndex = getIndexFromINodeNum(currentFileINodeNum);
 
             //得到磁盘上存储的文件数据
-            byte[] fileData = externalStorage.getData(iNodes.get(getIndexFromINodeNum(currentFileINodeNum)).getDataBlockList());
+            byte[] fileData = externalStorage.getData(iNodes.get(currentFileIndex).getDataBlockList());
+
+            iNodes.get(currentFileIndex).setAtime(new Date());//修改当前文件的打开时间
+            updateParentINodeTime(currentFileINodeNum, 'A');//修改父结点目录的的打开时间
+
             return new String(fileData, "utf-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -167,9 +205,8 @@ public class FileSystem {//文件系统
 
     public boolean writeFile(String currentPath, String fileName, String content) {//写文件，参数为本次写操作结束后的文件内容，返回值表示本次写操作是否成功；真为成功，假为失败
         try {
-            //先找到代表当前文件的INode
+            //先找到代表当前文件的INode和其在iNodes中的索引位置
             int currentFileINodeNum = getINodeNumberOfPath(currentPath);//先确定本文件所在目录的INode
-
             currentFileINodeNum = iNodes.get(getIndexFromINodeNum(currentFileINodeNum)).getPathMap().get(fileName);
             int currentFileIndex = getIndexFromINodeNum(currentFileINodeNum);
 
@@ -185,8 +222,13 @@ public class FileSystem {//文件系统
             externalStorage.salloc(contentByte.length, blockList);
             externalStorage.putData(contentByte, blockList);
             iNodes.get(currentFileIndex).setDataBlockList(blockList);//设置新的分配块
+
             iNodes.get(currentFileIndex).setFileLength(contentByte.length);//设置文件大小
-            updateParentINodeInfo(currentFileINodeNum, contentByte.length - initSize);//更新父结点文件大小域
+            updateParentINodeFileLength(currentFileINodeNum, contentByte.length - initSize);//更新父结点文件大小域
+
+            iNodes.get(currentFileIndex).setMtime(new Date());//修改当前文件的修改时间
+            updateParentINodeTime(currentFileINodeNum, 'M');//修改父结点目录的的修改时间
+
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -195,7 +237,7 @@ public class FileSystem {//文件系统
     }
 
     public boolean copy(String sourceFileName, String currentPath, String targetPath) {//文件复制，把源文件复制到目标路径，返回真表示成功，返回假表示失败
-        //先找到代表当前文件的INode
+        //先找到代表当前文件的INode和其在iNodes中的索引位置
         int currentFileINodeNum = getINodeNumberOfPath(currentPath);//先确定本文件所在目录的INode
         currentFileINodeNum = iNodes.get(getIndexFromINodeNum(currentFileINodeNum)).getPathMap().get(sourceFileName);
         int currentFileIndex = getIndexFromINodeNum(currentFileINodeNum);
@@ -233,7 +275,7 @@ public class FileSystem {//文件系统
     }
 
     public boolean move(String sourceFileName,String currentPath, String targetPath) {//文件移动，把源文件移动到目标路径，返回真表示成功，返回假表示失败
-        //先找到代表当前文件的INode
+        //先找到代表当前文件的INode和其在iNodes中的索引位置
         if (copy(sourceFileName, currentPath, targetPath)) {
             remove(currentPath, sourceFileName);
             return true;
@@ -244,7 +286,7 @@ public class FileSystem {//文件系统
     public void remove(String currentPath, String sourceFileName) {//删除文件
         //回收磁盘空间、从iNodes中移除、清除父结点信息
 
-        //先找到代表当前文件的INode
+        //先找到代表当前文件的INode和其在iNodes中的索引位置
         int currentFileINodeNum = getINodeNumberOfPath(currentPath);//先确定本文件所在目录的INode
         currentFileINodeNum = iNodes.get(getIndexFromINodeNum(currentFileINodeNum)).getPathMap().get(sourceFileName);
         int currentFileIndex = getIndexFromINodeNum(currentFileINodeNum);
@@ -278,8 +320,12 @@ public class FileSystem {//文件系统
         iNodes.get(getIndexFromINodeNum(parentINodeNum)).getPathMap().remove(sourceFileName);
 
         //更新父结点的文件大小
-        updateParentINodeInfo(currentFileINodeNum, 0 - iNodes.get(currentFileIndex).getFileLength());
+        updateParentINodeFileLength(currentFileINodeNum, 0 - iNodes.get(currentFileIndex).getFileLength());
 
+        //更新父结点的修改时间
+        updateParentINodeTime(currentFileINodeNum, 'M');
+
+        //回收inode编号、从iNodes中移除结点
         allocatedINodeNum.remove(INodeNum);
         for (int i = 0; i < iNodes.size(); i++)
             if (iNodes.get(i).getiNumber() == INodeNum) {
@@ -289,7 +335,7 @@ public class FileSystem {//文件系统
             }
     }
 
-    public List<Pair<String, FileTypeEnum>> showDirectory(String currentPath) {//根目录路径为 “~”；显示目录内容，参数为路径，返回值为列表；Pair中String参数表示文件或目录名，FileTypeEnum参数标识文件类型
+    public List<Pair<String, FileTypeEnum>> showDirectory(String currentPath) {//根目录路径为 "~"；显示目录内容，参数为路径，返回值为列表；Pair中String参数表示文件或目录名，FileTypeEnum参数标识文件类型
         int pathINodeNum = getINodeNumberOfPath(currentPath);
         int pathIndex = getIndexFromINodeNum(pathINodeNum);
 
@@ -306,6 +352,11 @@ public class FileSystem {//文件系统
         return directoryList;
     }
 
+    public INode getINodeInfo(String filePath) {//返回给定目录的inode信息，filePath表示文件绝对路径，如查看文件haha的INode信息则输入："~/dir/haha"
+        int pathINodeNum = getINodeNumberOfPath(filePath);
+        return iNodes.get(getIndexFromINodeNum(pathINodeNum));
+    }
+
     public void saveCurrentFileSystem() {
         try {
             JSONSaver.save(externalStorage, iNodes);
@@ -315,7 +366,7 @@ public class FileSystem {//文件系统
     }
 
     public static void main(String[] args) throws IOException {
-        FileSystem fileSystem = new FileSystem();
+        //FileSystem fileSystem = new FileSystem();
         String currentPath = "~";
 //        if (fileSystem.newFile(currentPath, "haha"))
 //            fileSystem.writeFile(currentPath, "haha", "this is haha's content");
