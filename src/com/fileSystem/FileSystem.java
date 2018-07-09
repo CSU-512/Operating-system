@@ -1,6 +1,7 @@
 package com.fileSystem;
 
 
+import com.exception.InternalStorageOutOfStorageException;
 import com.exception.OSException;
 import com.externalStorage.ExternalStorage;
 import com.internalStorage.InternalStorage;
@@ -232,12 +233,15 @@ public class FileSystem {//文件系统
         }
     }
 
-    public String readFile(String currentPath, String fileName) {//读文件，返回值为以字符串表示的文件内容
+    public String readFile(String currentPath, String fileName) throws InternalStorageOutOfStorageException {//读文件，返回值为以字符串表示的文件内容
         try {
             //先找到代表当前文件的INode和其在iNodes中的索引位置
             int currentFileINodeNum = getINodeNumberOfPath(currentPath);//先确定本文件所在目录的INode
             currentFileINodeNum = iNodes.get(getIndexFromINodeNum(currentFileINodeNum)).getPathMap().get(fileName);
             int currentFileIndex = getIndexFromINodeNum(currentFileINodeNum);
+
+            //分配内存
+            internalStorage.isalloc(iNodes.get(currentFileIndex).getFileLength());
 
             //得到磁盘上存储的文件数据
             byte[] fileData = externalStorage.getData(iNodes.get(currentFileIndex).getDataBlockList());
@@ -284,6 +288,15 @@ public class FileSystem {//文件系统
             e.printStackTrace();
             return false;
         }
+    }
+
+    public void closeFile(String currentPath, String fileName) {
+        //先找到代表当前文件的INode和其在iNodes中的索引位置
+        int currentFileINodeNum = getINodeNumberOfPath(currentPath);//先确定本文件所在目录的INode
+        currentFileINodeNum = iNodes.get(getIndexFromINodeNum(currentFileINodeNum)).getPathMap().get(fileName);
+        int currentFileIndex = getIndexFromINodeNum(currentFileINodeNum);
+
+        internalStorage.
     }
 
     public boolean copy(String sourceFileName, String currentPath, String targetPath) {//文件复制，把源文件复制到目标路径，返回真表示成功，返回假表示失败
