@@ -20,4 +20,12 @@ public enum UserTypeEnum {
     public int getUserMaximumFilePrivilege() {
         return filePrivilege;
     }
+
+    public static UserTypeEnum getUserTypeByString(String type){
+        UserTypeEnum userTypeEnum = null;
+            for(UserTypeEnum ute : UserTypeEnum.values())
+                if(ute.getUserType().equals(type))
+                    userTypeEnum = ute;
+        return userTypeEnum;
+    }
 }
