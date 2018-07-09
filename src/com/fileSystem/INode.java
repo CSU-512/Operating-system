@@ -16,8 +16,8 @@ public class INode implements Serializable {
     private String fileName;    //文件名,OK
     private int fileLength;	// 文件字节数,OK
     private FileTypeEnum fileType;//文件类型,OK（除了链接文件）
-    private String userID;	// 文件拥有者ID,NO
-    private String groupID;	// 文件组ID,NO
+    private int userID;	// 文件拥有者ID,NO
+    private int groupID;	// 文件组ID,NO
     private int privilege;	// 文件权限,NO
     private Date ctime, mtime, atime; 	// inode上次变动时间、文件内容上次变动时间、文件上次打开时间,OK
     private int linkCount;	// 文件链接数,NO
@@ -28,7 +28,7 @@ public class INode implements Serializable {
 
     }
 
-    public INode(int iNumber, int parentINumber, String fileName, int fileLength, FileTypeEnum fileType, String userID, String groupID, int privilege, Date ctime, Date mtime, Date atime, int linkCount, ArrayList<Integer> dataBlockList, Map<String, Integer> pathMap) {
+    public INode(int iNumber, int parentINumber, String fileName, int fileLength, FileTypeEnum fileType, int userID, int groupID, int privilege, Date ctime, Date mtime, Date atime, int linkCount, ArrayList<Integer> dataBlockList, Map<String, Integer> pathMap) {
         this.iNumber = iNumber;
         this.parentINumber = parentINumber;
         this.fileName = fileName;
@@ -85,19 +85,19 @@ public class INode implements Serializable {
         this.fileType = fileType;
     }
 
-    public String getUserID() {
+    public int getUserID() {
         return userID;
     }
 
-    public void setUserID(String userID) {
+    public void setUserID(int userID) {
         this.userID = userID;
     }
 
-    public String getGroupID() {
+    public int getGroupID() {
         return groupID;
     }
 
-    public void setGroupID(String groupID) {
+    public void setGroupID(int groupID) {
         this.groupID = groupID;
     }
 
