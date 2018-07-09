@@ -11,10 +11,6 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 class FileNode extends DefaultMutableTreeNode{
@@ -100,19 +96,19 @@ public class mainWindow extends JFrame{
             }
         });
         this.setVisible(true);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true){
-                    fileTree.updateUI();
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }).start();
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                while (true){
+//                    fileTree.updateUI();
+//                    try {
+//                        Thread.sleep(500);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//        }).start();
     }
 
     public void initFileTree(){
@@ -166,24 +162,31 @@ public class mainWindow extends JFrame{
                     String content = fileSystem.readFile(currentPath,selectedNode.toString());
                     fileDisplay.setText(content);
                 }
-                if(!DELETING && !selectedNode.isLeaf()){
+                if(!DELETING && (selectedNode != null &&!selectedNode.isLeaf())){
                     String currentPath = handlePath(treePath.toString());
                     List<Pair<String, FileTypeEnum>> nodeList = fileSystem.showDirectory(currentPath);
+                    System.out.println(selectedNode.toString());
                     selectedNode.removeAllChildren();
+//                    fileTree.updateUI();
+                    System.out.println("能不能");
                     DefaultTreeModel defaultTreeModel1 = (DefaultTreeModel) fileTree.getModel();
-                    for(Pair<String, FileTypeEnum> node : nodeList){
-                        FileNode newNode = new FileNode(node.getKey());
-                        switch (node.getValue()){
-                            case INODE_IS_DIRECTORY: {
-                                newNode.setType(0);
-                            } break;
-                            case INODE_IS_REGULAR_FILE:{
-                                newNode.setType(1);
-                            } break;
+                    if(nodeList.size() != selectedNode.getChildCount()){
+                        for(Pair<String, FileTypeEnum> node : nodeList){
+                            FileNode newNode = new FileNode(node.getKey());
+                            switch (node.getValue()){
+                                case INODE_IS_DIRECTORY: {
+                                    newNode.setType(0);
+                                } break;
+                                case INODE_IS_REGULAR_FILE:{
+                                    newNode.setType(1);
+                                } break;
+                            }
+                            defaultTreeModel1.insertNodeInto(newNode,selectedNode,selectedNode.getChildCount());
                         }
-                        defaultTreeModel.insertNodeInto(newNode,selectedNode,selectedNode.getChildCount());
                     }
+
                 }
+                fileTree.updateUI();
             }
         });
     }
@@ -287,6 +290,10 @@ public class mainWindow extends JFrame{
                 TreePath treePath = fileTree.getSelectionPath();
                 newNode.setType(0);
                 FileNode selectedNode = (FileNode) fileTree.getLastSelectedPathComponent();
+                //System.out.println(selectedNode.toString());
+                if(selectedNode == null){
+                    selectedNode = (FileNode) ((DefaultTreeModel) fileTree.getModel()).getRoot();
+                }
                 //添加新文件夹
                 fileSystem.newDirectory(handlePath(treePath.toString()),newName);
                 DefaultTreeModel defaultTreeModel = (DefaultTreeModel) fileTree.getModel();
@@ -350,7 +357,8 @@ public class mainWindow extends JFrame{
                         copyNode = (FileNode) startPath.getLastPathComponent();
                         System.out.println("start:"+start+" dest:"+dest);
                         fileSystem.copy(copyNode.toString(),start,dest);
-                        defaultTreeModel.insertNodeInto(copyNode,destNode,destNode.getChildCount());
+                        FileNode newNode = (FileNode) copyNode.clone();
+                        defaultTreeModel.insertNodeInto(newNode,destNode,destNode.getChildCount());
                     }break;
                     case 2:{
                         start = handleFilepath(startPath);
