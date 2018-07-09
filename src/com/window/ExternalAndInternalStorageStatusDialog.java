@@ -21,6 +21,8 @@ public class ExternalAndInternalStorageStatusDialog extends JDialog {
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
+        pack();
+        setVisible(true);
 
         buttonOK.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -63,8 +65,7 @@ public class ExternalAndInternalStorageStatusDialog extends JDialog {
     public static void main(String[] args) {
         ExternalAndInternalStorageStatusDialog dialog =
                 new ExternalAndInternalStorageStatusDialog(1024, 42, 1024, 12);
-        dialog.pack();
-        dialog.setVisible(true);
+
         System.exit(0);
     }
 }
