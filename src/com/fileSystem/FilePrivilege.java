@@ -98,6 +98,6 @@ public class FilePrivilege {
     public static void main(String[] args) throws OSException {
         System.out.println(privilegeToString(510));
         System.out.println(stringToPrivilege(privilegeToString(457)));
-        System.out.println(stringToPrivilege("r-v--v--v"));
+        System.out.println(stringToPrivilege("r-v-v--v"));
     }
 }
