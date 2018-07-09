@@ -55,11 +55,16 @@ public class FileSystem {//文件系统
     //得到当前路径表示文件夹的inode编号
     private int getINodeNumberOfPath(String currentPath) {
         String[] pathArray = currentPath.split("/");
+
         int pathINodeNum = 0;//从根结点的INode编号开始向下寻找
+        int index;
 
-        for (int i = 1; i < pathArray.length; i++)
-            pathINodeNum = iNodes.get(getIndexFromINodeNum(pathINodeNum)).getPathMap().get(pathArray[i]);//定位当前路径所指示的INode的编号
-
+        for (int i = 1; i < pathArray.length; i++) {
+            index = getIndexFromINodeNum(pathINodeNum);
+//            System.out.println(index);
+//            System.out.println(iNodes.get(index).getPathMap());
+            pathINodeNum = iNodes.get(index).getPathMap().get(pathArray[i]);//定位当前路径所指示的INode的编号
+        }
         return pathINodeNum;
     }
 
@@ -222,21 +227,18 @@ public class FileSystem {//文件系统
 
     public void remove(String currentPath, String sourceFileName) {//删除文件
         //回收磁盘空间、从iNodes中移除、清除父结点信息
+
         //先找到代表当前文件的INode
         int currentFileINodeNum = getINodeNumberOfPath(currentPath);//先确定本文件所在目录的INode
         currentFileINodeNum = iNodes.get(getIndexFromINodeNum(currentFileINodeNum)).getPathMap().get(sourceFileName);
         int currentFileIndex = getIndexFromINodeNum(currentFileINodeNum);
 
-        //先在当前文件的父结点的inode中清除相关信息
+        //不允许删除根结点
         int parentINodeNum = iNodes.get(currentFileIndex).getParentINumber();
         if (parentINodeNum == -1) {//不允许删除根节结点
             System.out.println("不允许删除根结点");
             return;
         }
-        iNodes.get(getIndexFromINodeNum(parentINodeNum)).getPathMap().remove(sourceFileName);
-
-        //更新父结点的文件大小
-        updateParentINodeInfo(currentFileINodeNum, 0 - iNodes.get(currentFileIndex).getFileLength());
 
         //保存所有需要回收的iNode编号，最后一同回收，同时删除iNodes中的结点元素
         Set<Integer> iNodeNumToRetrieve = new HashSet<>();
@@ -246,6 +248,8 @@ public class FileSystem {//文件系统
             String directoryName = "/" + sourceFileName;
             for (String key : iNodes.get(currentFileIndex).getPathMap().keySet())
                 remove(currentPath + directoryName, key);
+            iNodes.get(currentFileIndex).getPathMap().clear();
+            iNodes.get(getIndexFromINodeNum(parentINodeNum)).getPathMap().remove(sourceFileName);
         }
         else {//否则说明sourceFile是普通文件，可以直接回收空间
 
@@ -255,6 +259,9 @@ public class FileSystem {//文件系统
             //将inode编号加入待回收集合
             iNodeNumToRetrieve.add(iNodes.get(currentFileIndex).getiNumber());
         }
+
+        //更新父结点的文件大小
+        updateParentINodeInfo(currentFileINodeNum, 0 - iNodes.get(currentFileIndex).getFileLength());
 
         //统一回收INodeNum
         for (Integer INodeNum : iNodeNumToRetrieve) {
@@ -266,7 +273,6 @@ public class FileSystem {//文件系统
                 }
         }
     }
-
 
     public List<Pair<String, FileTypeEnum>> showDirectory(String currentPath) {//根目录路径为 “~”；显示目录内容，参数为路径，返回值为列表；Pair中String参数表示文件或目录名，FileTypeEnum参数标识文件类型
         int pathINodeNum = getINodeNumberOfPath(currentPath);
@@ -294,27 +300,19 @@ public class FileSystem {//文件系统
     }
 
     public static void main(String[] args) throws IOException {
-//        FileSystem fileSystem = new FileSystem();
-//        String currentPath = "~";
-//        fileSystem.newFile(currentPath, "haha");
-//        fileSystem.writeFile(currentPath, "haha", "this is haha's content");
-//        fileSystem.newFile(currentPath, "heihei");
-//        fileSystem.writeFile(currentPath, "heihei", "this is heihei's content");
-//        fileSystem.newFile(currentPath, "heihei");
-//        fileSystem.writeFile(currentPath, "heihei", "this is heihei's content");
-//        fileSystem.newDirectory(currentPath, "a directory");
-//        fileSystem.newFile(currentPath + "/a directory", "haha in dir");
-//        fileSystem.saveCurrentFileSystem();
-        ArrayList<Integer> list = new ArrayList<>();
-        list.add(10);
-        list.add(11);
-        list.add(11);
-        list.add(12);
-        list.add(13);
-        System.out.println(list);
-        list.remove(1);
-        System.out.println(list);
-        list.remove(1);
-        System.out.println(list);
+        FileSystem fileSystem = new FileSystem();
+        String currentPath = "~";
+//        if (fileSystem.newFile(currentPath, "haha"))
+//            fileSystem.writeFile(currentPath, "haha", "this is haha's content");
+//
+//        if (fileSystem.newFile(currentPath, "heihei"))
+//            fileSystem.writeFile(currentPath, "heihei", "this is heihei's content");
+//
+//        if (fileSystem.newDirectory(currentPath, "directory"))
+//            fileSystem.newFile(currentPath + "/directory", "haha in dir");
+        //fileSystem.move("heihei",currentPath,currentPath+"/directory");
+        fileSystem.remove(currentPath, "directory");
+
+        fileSystem.saveCurrentFileSystem();
     }
 }
