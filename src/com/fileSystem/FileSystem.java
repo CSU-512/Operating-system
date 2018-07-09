@@ -423,7 +423,11 @@ public class FileSystem {//文件系统
         try {
             int pathINodeNum = getINodeNumberOfPath(filePath);
             int privilegeNum = FilePrivilege.stringToPrivilege(privilegeStr);
+
             iNodes.get(pathINodeNum).setPrivilege(currentUser, userManagement, privilegeNum);
+            if (iNodes.get(pathINodeNum).getFileType() == FileTypeEnum.INODE_IS_DIRECTORY)
+                for (String key : iNodes.get(pathINodeNum).getPathMap().keySet())
+                    changePrivilege(filePath + "/" + key, privilegeStr);
             return true;
         } catch (OSException e) {
             e.printExceptionMessage();

@@ -4,10 +4,13 @@ import com.exception.OSException;
 import com.userManagement.User;
 import com.userManagement.UserManagement;
 import com.userManagement.UserTypeEnum;
+import org.apache.commons.codec.binary.Base64;
+import org.json.JSONObject;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
 
 public class CreateUserDialog extends JFrame {
     private JTextField textField1;
@@ -43,8 +46,25 @@ public class CreateUserDialog extends JFrame {
                                 UserTypeEnum.getUserTypeByString((String) comboBox1.getSelectedItem())
                         );
 
+                        ByteArrayOutputStream bo = new ByteArrayOutputStream();
+                        ObjectOutputStream os = new ObjectOutputStream(bo);
+                        os.writeObject(userManagement);
+                        byte[] userByte = bo.toByteArray();
+                        bo.close();
+                        os.close();
+
+                        JSONObject jo = new JSONObject();
+                        jo.put("UserManagement", Base64.encodeBase64String(userByte));
+                        FileOutputStream fos = new FileOutputStream(new File("UserManagement.json"));
+                        fos.write(jo.toString().getBytes());
+                        fos.close();
+                        
                         dispose();
                     } catch (OSException e1) {
+                        e1.printStackTrace();
+                    } catch (FileNotFoundException e1) {
+                        e1.printStackTrace();
+                    } catch (IOException e1) {
                         e1.printStackTrace();
                     }
                 } else {
