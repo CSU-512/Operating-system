@@ -3,6 +3,7 @@ package com.fileSystem;
 import com.exception.ExceptionEnum;
 import com.exception.OSException;
 import com.userManagement.User;
+import com.userManagement.UserManagement;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -17,7 +18,6 @@ public class INode implements Serializable {
     private int fileLength;	// 文件字节数,OK
     private FileTypeEnum fileType;//文件类型,OK（除了链接文件）
     private int userID;	// 文件拥有者ID,NO
-    private int groupID;	// 文件组ID,NO
     private int privilege;	// 文件权限,NO
     private Date ctime, mtime, atime; 	// inode上次变动时间、文件内容上次变动时间、文件上次打开时间,OK
     private int linkCount;	// 文件链接数,NO
@@ -28,14 +28,13 @@ public class INode implements Serializable {
 
     }
 
-    public INode(int iNumber, int parentINumber, String fileName, int fileLength, FileTypeEnum fileType, int userID, int groupID, int privilege, Date ctime, Date mtime, Date atime, int linkCount, ArrayList<Integer> dataBlockList, Map<String, Integer> pathMap) {
+    public INode(int iNumber, int parentINumber, String fileName, int fileLength, FileTypeEnum fileType, int userID, int privilege, Date ctime, Date mtime, Date atime, int linkCount, ArrayList<Integer> dataBlockList, Map<String, Integer> pathMap) {
         this.iNumber = iNumber;
         this.parentINumber = parentINumber;
         this.fileName = fileName;
         this.fileLength = fileLength;
         this.fileType = fileType;
         this.userID = userID;
-        this.groupID = groupID;
         this.privilege = privilege;
         this.ctime = ctime;
         this.mtime = mtime;
@@ -93,14 +92,6 @@ public class INode implements Serializable {
         this.userID = userID;
     }
 
-    public int getGroupID() {
-        return groupID;
-    }
-
-    public void setGroupID(int groupID) {
-        this.groupID = groupID;
-    }
-
     public int getPrivilege() {
         return privilege;
     }
@@ -111,8 +102,16 @@ public class INode implements Serializable {
      * @param privilege 欲设置的权限
      * @throws OSException  如果执行者最大权限小于预设值的权限，将抛出异常10022
      */
-    public void setPrivilege(User performer, int privilege) throws OSException {
-        if(performer.getUserType().getUserMaximumFilePrivilege() < privilege)
+    public void setPrivilege(User performer, UserManagement um, int privilege) throws OSException {
+        // 如果执行者不是文件的所有者，就不可以更新文件权限
+        if(performer.getUID() != userID)
+            throw new OSException(ExceptionEnum.OS_WEAK_ROLE_EXCEPTION);
+        // 如果执行者角色等级不大于文件所有者角色等级，就不可以更新文件权限
+        if(performer.getUserType().getUserMaximumFilePrivilege() <=
+                um.findUser(userID).getUserType().getUserMaximumFilePrivilege())
+            throw new OSException(ExceptionEnum.OS_WEAK_ROLE_EXCEPTION);
+        // 执行者不可以操作比自己等级更高的那部分权限
+        if(performer.getUserType().getUserMaximumFilePrivilege() <= privilege)
             throw new OSException(ExceptionEnum.OS_WEAK_ROLE_EXCEPTION);
         this.privilege = privilege;
     }

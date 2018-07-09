@@ -6,6 +6,7 @@ import com.externalStorage.ExternalStorage;
 import com.internalStorage.InternalStorage;
 import com.userManagement.User;
 import com.userManagement.UserManagement;
+import com.userManagement.UserTypeEnum;
 import com.util.JSONLoader;
 import com.util.JSONSaver;
 import javafx.util.Pair;
@@ -154,10 +155,18 @@ public class FileSystem {//文件系统
             newINode.setFileLength(0);//初始文件长度为0
             newINode.setFileType(FileTypeEnum.INODE_IS_REGULAR_FILE);
             //设置文件所有者信息
+            newINode.setUserID(currentUser.getUID());
             try {
-                newINode.setUserID(currentUser.getUID());
-                newINode.setGroupID(currentUser.getGID());
-                newINode.setPrivilege(currentUser, FilePrivilege.stringToPrivilege("rwv--v--v"));//初始权限111001001
+                //初始权限
+                //superuser：rwv--v--v
+                //user：rwvrwv--v
+                //guest：rwvrwvrwv
+                if (currentUser.getUserType() == UserTypeEnum.OS_SUPERUSER)
+                    newINode.setPrivilege(currentUser, userManagement, FilePrivilege.stringToPrivilege("rwv--v--v"));
+                if (currentUser.getUserType() == UserTypeEnum.OS_USER)
+                    newINode.setPrivilege(currentUser, userManagement, FilePrivilege.stringToPrivilege("rwvrwv--v"));
+                if (currentUser.getUserType() == UserTypeEnum.OS_GUEST)
+                    newINode.setPrivilege(currentUser, userManagement, FilePrivilege.stringToPrivilege("rwvrwvrwv"));
             } catch (OSException e) {
                 e.printExceptionMessage();
                 return false;
@@ -194,10 +203,18 @@ public class FileSystem {//文件系统
             newINode.setFileLength(0);
             newINode.setFileType(FileTypeEnum.INODE_IS_DIRECTORY);
             //设置文件所有者信息
+            newINode.setUserID(currentUser.getUID());
             try {
-                newINode.setUserID(currentUser.getUID());
-                newINode.setGroupID(currentUser.getGID());
-                newINode.setPrivilege(currentUser, FilePrivilege.stringToPrivilege("rwv--v--v"));//初始权限111001001
+                //初始权限
+                //superuser：rwv--v--v
+                //user：rwvrwv--v
+                //guest：rwvrwvrwv
+                if (currentUser.getUserType() == UserTypeEnum.OS_SUPERUSER)
+                    newINode.setPrivilege(currentUser, userManagement, FilePrivilege.stringToPrivilege("rwv--v--v"));
+                if (currentUser.getUserType() == UserTypeEnum.OS_USER)
+                    newINode.setPrivilege(currentUser, userManagement, FilePrivilege.stringToPrivilege("rwvrwv--v"));
+                if (currentUser.getUserType() == UserTypeEnum.OS_GUEST)
+                    newINode.setPrivilege(currentUser, userManagement, FilePrivilege.stringToPrivilege("rwvrwvrwv"));
             } catch (OSException e) {
                 e.printExceptionMessage();
                 return false;
@@ -398,13 +415,16 @@ public class FileSystem {//文件系统
         return iNodes.get(getIndexFromINodeNum(pathINodeNum));
     }
 
-    public void changePrivilege(String filePath, String privilegeStr) {//为给定文件更改权限，filePath表示文件绝对路径；privilegeStr表示权限字符串，如："rwv--v--v"
+    public boolean changePrivilege(String filePath, String privilegeStr) {//为给定文件更改权限，filePath表示文件绝对路径；privilegeStr表示权限字符串，如："rwv--v--v"
+        //返回值为真表示本次设置成功，假表示设置失败
         try {
             int pathINodeNum = getINodeNumberOfPath(filePath);
             int privilegeNum = FilePrivilege.stringToPrivilege(privilegeStr);
-            iNodes.get(pathINodeNum).setPrivilege(currentUser, privilegeNum);
+            iNodes.get(pathINodeNum).setPrivilege(currentUser, userManagement, privilegeNum);
+            return true;
         } catch (OSException e) {
             e.printExceptionMessage();
+            return false;
         }
     }
 
