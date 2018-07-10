@@ -620,6 +620,9 @@ public class mainWindow extends JFrame{
                             String path = command.substring(0,indexOfM);
                             //获取要写文件的绝对路径
                             path = path.trim();
+                            if(!path.startsWith("~/")){
+                                path = commandPath+"/"+path;
+                            }
                             if(!fileSystem.checkPath(path)){
                                 commandLine.replaceSelection("\"" + path + "\" 不是一个正确的地址\n");
                                 break;
