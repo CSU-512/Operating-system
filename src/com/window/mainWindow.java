@@ -11,6 +11,8 @@ import javafx.util.Pair;
 
 
 import javax.swing.*;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.text.AttributeSet;
@@ -106,7 +108,7 @@ public class mainWindow extends JFrame{
         commandLine.setBackground(Color.GRAY);
         commandLine.setForeground(Color.WHITE);
         //命令行滑条不显示
-        jscForCommand.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+        //jscForCommand.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 
         this.add(jscForDisplay);
         this.add(jscForCommand);
@@ -163,19 +165,12 @@ public class mainWindow extends JFrame{
             }
         });
 
-        fileTree.addTreeSelectionListener(new TreeSelectionListener() {
-            //选择节点触发
+        fileTree.addTreeExpansionListener(new TreeExpansionListener() {
             @Override
-            public void valueChanged(TreeSelectionEvent e) {
-                openButton.setEnabled(true);
-                editButton.setVisible(false);
-                saveButton.setVisible(false);
-                cancelButton.setVisible(false);
-                fileDisplay.setText("");
+            public void treeExpanded(TreeExpansionEvent event) {
                 TreePath treePath = fileTree.getSelectionPath();
                 FileNode selectedNode = (FileNode) fileTree.getLastSelectedPathComponent();
                 if(!DELETING && (selectedNode != null &&!selectedNode.isLeaf())){
-                    openButton.setEnabled(false);
                     String currentPath = handlePath(treePath.toString());
                     List<Pair<String, FileTypeEnum>> nodeList = fileSystem.showDirectory(currentPath);
                     System.out.println(selectedNode.toString());
@@ -197,15 +192,36 @@ public class mainWindow extends JFrame{
                         }
                     }
                 }
-                else {
-                    openButton.setEnabled(true);
-                }
                 SwingUtilities.invokeLater(new Runnable() {
                     @Override
                     public void run() {
                         fileTree.updateUI();
                     }
                 });
+            }
+
+            @Override
+            public void treeCollapsed(TreeExpansionEvent event) {
+
+            }
+        });
+
+        fileTree.addTreeSelectionListener(new TreeSelectionListener() {
+            @Override
+            public void valueChanged(TreeSelectionEvent e) {
+                openButton.setEnabled(true);
+                editButton.setVisible(false);
+                saveButton.setVisible(false);
+                cancelButton.setVisible(false);
+                fileDisplay.setText("");
+                TreePath treePath = fileTree.getSelectionPath();
+                FileNode selectedNode = (FileNode) fileTree.getLastSelectedPathComponent();
+                if(!DELETING && (selectedNode != null &&!selectedNode.isLeaf())) {
+                    openButton.setEnabled(false);
+                }
+                else {
+                    openButton.setEnabled(true);
+                }
             }
         });
     }
@@ -582,15 +598,13 @@ public class mainWindow extends JFrame{
                             fileSystem.newFile(currentPath,newName);
                             fileSystem.writeFile(currentPath,newName,"");
                             fileSystem.saveCurrentFileSystem();
-                            fileTree.updateUI();
+                            fileTree.repaint();
                         }break;
                         case "mkdir":{
                             command = command.substring(firstWord.length());
-                            //command = command.replace("mkdir","");
                             String newName = command.trim();
                             fileSystem.newDirectory(commandPath,newName);
                             fileSystem.saveCurrentFileSystem();
-                            fileTree.updateUI();
                         }break;
                         case "cat":{
 
@@ -623,19 +637,52 @@ public class mainWindow extends JFrame{
                             }
                             fileSystem.writeFile(currentPath,filename,content);
                             fileSystem.saveCurrentFileSystem();
-
                         }break;
                         case "cp":{
-
+                            command = command.substring(firstWord.length()).trim();
+                            String element[] = command.split(" ");      //存文件名和目标地址
+                            String fileName = element[0].trim();
+                            String targetAddr = element[1].trim();
+                            if(!fileSystem.checkPath(commandPath+"/"+fileName)){
+                                commandLine.replaceSelection("当前目录不存在该文件");
+                                break;
+                            }
+                            if(!targetAddr.startsWith("~/")){
+                                targetAddr = commandPath+"/"+targetAddr;
+                            }
+                            INode iNode = fileSystem.getINodeInfo(targetAddr);
+                            System.out.println(command+"  "+iNode.getFileType());
+                            if(iNode.getFileType() != FileTypeEnum.INODE_IS_DIRECTORY){
+                                commandLine.replaceSelection("\"" + targetAddr + "\" 不是一个正确的地址\n");
+                                break;
+                            }
+                            //System.out.println("firest:"+fileName+" secc0 "+targetAddr);
+                            fileSystem.copy(fileName,commandPath,targetAddr);
                         }break;
                         case "mv":{
-
+                            command = command.substring(firstWord.length()).trim();
+                            String element[] = command.split(" ");      //存文件名和目标地址
+                            String fileName = element[0].trim();
+                            String targetAddr = element[1].trim();
+                            if(!fileSystem.checkPath(commandPath+"/"+fileName)){
+                                commandLine.replaceSelection("当前目录不存在该文件");
+                                break;
+                            }
+                            if(!targetAddr.startsWith("~/")){
+                                targetAddr = commandPath+"/"+targetAddr;
+                            }
+                            INode iNode = fileSystem.getINodeInfo(targetAddr);
+                            System.out.println(command+"  "+iNode.getFileType());
+                            if(iNode.getFileType() != FileTypeEnum.INODE_IS_DIRECTORY){
+                                commandLine.replaceSelection("\"" + targetAddr + "\" 不是一个正确的地址\n");
+                                break;
+                            }
+                            //System.out.println("firest:"+fileName+" secc0 "+targetAddr);
+                            fileSystem.move(fileName,commandPath,targetAddr);
                         }break;
                         case "rm":{
-
-                        }break;
-                        case "rmdir":{
-
+                            String fileName = command.substring(firstWord.length()).trim();
+                            fileSystem.remove(commandPath,fileName);
                         }break;
                         case "ls":{
                             //文件夹后面加斜杠
@@ -657,7 +704,15 @@ public class mainWindow extends JFrame{
                         case "cd":{
                             command = command.substring(firstWord.length());
                             command = command.trim();
+                            if(!command.startsWith("~/")){
+                                command = commandPath +"/" + command;
+                            }
                             if(!fileSystem.checkPath(command)){
+                                commandLine.replaceSelection("\"" + command + "\" 不是一个正确的地址\n");
+                                break;
+                            }
+                            INode iNode = fileSystem.getINodeInfo(command);
+                            if(iNode.getFileType() != FileTypeEnum.INODE_IS_DIRECTORY){
                                 commandLine.replaceSelection("\"" + command + "\" 不是一个正确的地址\n");
                                 break;
                             }
@@ -668,7 +723,7 @@ public class mainWindow extends JFrame{
                             commandLine.replaceSelection("\"" + command + "\" 不是一个正确的命令\n");
                         }break;
                     }
-
+                    commandLine.replaceSelection("\n");
                     //换行添加“$”
                     commandLine.setCaretPosition(commandLine.getDocument().getLength());
                     commandLine.replaceSelection(currentUser.getUserName()+"     "+commandPath+"\n$ ");
